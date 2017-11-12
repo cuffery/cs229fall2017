@@ -4,15 +4,21 @@ Training data:
 stats - charting-m-stats-Overview
 netpoints - charting-m-stats-NetPoints
 matches - charting-m-matches
+players - apt_players
+points - charting-m-points
 
 Table 2.1: OnCourt dataset
 Player details
+    - players - (column 3) Dominant hand
 Name
-Date of birth
-Country of birth
+    - players or matches both have this info
+players - (column 4) Date of birth
+players - (column 5) Country of birth
 Prize money
 ATP rating points over time
+    - atp_rankings_10s (column 4), need to match with atp_players id
 ATP rank over time
+    - atp_rankings_10s (column 1), need to match with atp_players id
 
 Match details
 matches - (Tournament) Tournament name
@@ -24,7 +30,7 @@ Result (scoreline)
 Prize money
 Odds (Marathonbet, Pinnacle)
 
-Per-match stats for both players
+Per-set stats for both players
 stats - (first_in/serve_pts)First serve percentage
 stats - (aces) Aces
 stats - (dfs) Double faults
