@@ -9,7 +9,7 @@ points - charting-m-points
 
 Table 2.1: OnCourt dataset
 Player details
-    - players - (column 3) Dominant hand
+    - DONE - players - (column 3) Dominant hand
 Name
     - players or matches both have this info
 players - (column 4) Date of birth
@@ -20,12 +20,12 @@ ATP rating points over time
 ATP rank over time
     - atp_rankings_10s (column 1), need to match with atp_players id
 
-Match details
+Tournaments details
 matches - (Tournament) Tournament name
-Tournament type (e.g., Grand Slam)
-matches - (Surface) Surface
+DONE - Tournament type (e.g., Grand Slam)
+DONE - matches - (Surface) Surface
 Location (country, lat/lon)
-matches - (Date) Date
+DONE matches - (Date) Date
 Result (scoreline)
 Prize money
 Odds (Marathonbet, Pinnacle)
@@ -46,6 +46,11 @@ Fastest serve
 Average first serve speed
 Average second serve speed
 Odds (Marathonbet, Pinnacle)
+
+Fatigue
+Weather
+Current match
+Injury
 
 New features:
 - Round
