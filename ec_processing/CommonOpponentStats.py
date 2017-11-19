@@ -5,22 +5,6 @@
 #   Created by: Eddie Chen
 #	Last edit: 11/18/2017 21:07
 
-## Per-set stats for both players - checklist from atp_matches
-# stats - (first_in/serve_pts)First serve percentage ---Yes, w_1stin/w_svpt - l_1stin/l_svpt
-# stats - (aces) Aces ---Yes (w_ace - _ace)
-# stats - (dfs) Double faults ---Yes
-# stats - (unforced) Unforced errors ---NO
-# stats - (first_won/first_in) Percentage of points won on first serve --Yes
-# stats - (second_won/second_in)Percentage of points won on second serve ---Yes
-# stats - (return_pts_won/return_pts)Percentage of receiving points won ---NO
-# stats - (bk_pts) Break points (won, total) ---Yes
-# netpoints - (pts_won/net_pts)Net approaches (won, total) ---NO
-# stats - (second_won + first_won + return_pts_won/serve_pts + return_pts)Total points won
-# Fastest serve
-# Average first serve speed
-# Average second serve speed
-# Odds (Marathonbet, Pinnacle)
-
 # Fatigue
 # Weather
 # Current match
@@ -33,6 +17,26 @@ import matplotlib.pyplot as plt
 import scipy
 import pandas as pd
 import glob
+import datetime
+
+# util function
+def parse(t):
+    ret = []
+    for ts in t:
+        try:
+            string = str(ts)
+            tsdt = datetime.date(int(string[:4]), int(string[4:6]), int(string[6:]))
+        except TypeError:
+            tsdt = datetime.date(1900,1,1)
+        ret.append(tsdt)
+    return ret
+
+def parse_date(td):
+    """helper function to parse time"""
+    resYear = float(td.days)/364.0                   # get the number of years including the the numbers after the dot
+    resMonth = int((resYear - int(resYear))*364/30)  # get the number of months, by multiply the number after the dot by 364 and divide by 30.
+    resYear = int(resYear)
+    return str(resYear) + "y" + str(resMonth) + "m"
 
 def readATPMatches(dirname):
     """Reads ATP matches but does not parse time into datetime object"""
@@ -49,7 +53,7 @@ def readATPMatches(dirname):
 
 def readATPMatchesParseTime(dirname):
     """Reads ATP matches and parses time into datetime object"""
-    allFiles = glob.glob(dirname + "/atp_matches_" + "????.csv")
+    allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")
     matches = pd.DataFrame()
     container = list()
     for filen in allFiles:
@@ -77,16 +81,8 @@ def FindCommonOpponents(p1opponents, p2opponents):
 
 ## This calculates differential stats from common opponents
 def FindCommonOpponentStats(p1opp, p2opp):
-	opp = pd.DataFrame()
-	container = list()
-	for i in p1opp:
-		for j in p2opp:
-			if (i.winner_name|i.loser_name) == (j.winner_name|j.loser_name):
-				container.append(i)
-				# print(i)
-				# print(j)
-	# opp = pd.concat(container)
-	return(container)
+
+	return
 
 
 ## This returns a list of opponents for player p
@@ -102,7 +98,7 @@ def FindOpponents(p, matches):
 							'tourney_date':df.tourney_date, 
 							'match_num':df.match_num, 
 							'duration_minutes': df.minutes,
-							'match_result':1,
+							'match_result':1.,
 							'player_name':df.winner_name,
 							'player_ID':df.winner_id,
 							'opponent_name':df.loser_name,
@@ -133,7 +129,7 @@ def FindOpponents(p, matches):
 							'tourney_date':df.tourney_date, 
 							'match_num':df.match_num, 
 							'duration_minutes': df.minutes,
-							'match_result':0,
+							'match_result':0.,
 							'player_name':df.loser_name,
 							'player_ID':df.loser_id,
 							'opponent_name':df.winner_name,
@@ -159,14 +155,7 @@ def FindOpponents(p, matches):
 ## This returns a list of opponents and their game stats for player p
 def FindOpponentStats(p, matches):
 ## find games where p won, and then where p lost
-	stats = pd.DataFrame()
-	df = matches[matches.winner_name == p]
-	opponents = list()
-	opponents.append(df)
-	df = matches[matches.loser_name == p]
-	opponents.append(df)
-	stats = pd.concat(opponents)
- 	return(stats)
+ 	return
 
 
 ## Stats list for feature usage: 
@@ -183,9 +172,19 @@ def FindOpponentStats(p, matches):
 	# NEW stats - difference in ranking (p - opponent)
 	# NEW stats - difference in seed (p - opponent)
 
+## This returns historical averages for player p before match_date, calculated from matches
+## matches are calculated from p's matches against his opponents
+def ComputeHistoricalAvg(p, match_date, matches):
+	## match_date format: yyyymmdd
+	historical = matches[matches.tourney_date < match_date]
+	grouped = historical.groupby('player_ID')
+	res = grouped.aggregate(np.mean)
+ 	return(res)
+
 # main()
 def main():
-	atpmatches = readATPMatches("../tennis_atp")
+	# atpmatches = readATPMatches("../tennis_atp")
+	atpmatches = readATPMatchesParseTime("../tennis_atp")
 
 	## input p1 and p2; test case
 	p1 = 'Rafael Nadal'
@@ -196,11 +195,10 @@ def main():
 	# p1Stats = FindOpponentStats(p1, atpmatches)
 	# p2Stats = FindOpponentStats(p2, atpmatches)
 
-	FindCommonOpponents(p1opponents, p2opponents)
-	# # print(commonOpp) ## WE NEED MATCH ID TOO!!!
-
-	# commonOppStats = FindCommonOpponentStats(p1Stats, p2Stats)
-	# print(commonOppStats)
+	avg = ComputeHistoricalAvg(p1, '20150101', p1opponents)
+	print(avg.dtypes)
+	print(avg)
+	# FindCommonOpponents(p1opponents, p2opponents)
 
 	return
 
