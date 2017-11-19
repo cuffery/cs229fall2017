@@ -54,6 +54,7 @@ def readATPMatches(dirname):
 def readATPMatchesParseTime(dirname):
     """Reads ATP matches and parses time into datetime object"""
     allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")
+    allFiles = allFiles[:-1]
     matches = pd.DataFrame()
     container = list()
     for filen in allFiles:
@@ -234,8 +235,16 @@ def main():
                          header=0)
 
 	results = pd.DataFrame()
+	#results.column = ['p1','p2','d','1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'match_result', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff', 'p1', 'p2', 'd']
+	#print(list(results))
+	'''
+	results['p1'] = test.player_1_id
+	results['p2'] = test.player_2_id
+	results['d'] = test.Date
+	'''
+
 	container = list()
-	for i in xrange(20):#xrange(test.shape[0]):
+	for i in xrange(test.shape[0]):
 		p1 = test.player_1_id[i]
 		p2 = test.player_2_id[i]
 		d = test.Date[i]
@@ -251,19 +260,25 @@ def main():
 			# 	res = ##preserve column headers, fill with NA
 			if (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
 				res = ComputeAvgFromCommonOpp(avgp1, avgp2)
-			
 		else:
 			## else, compute using common opponent
 			avgp1 = ComputeHistoricalAvg(p1, d, op1)
 			avgp2 = ComputeHistoricalAvg(p2, d, op2)
 			res = ComputeAvgFromCommonOpp(avgp1, avgp2)
-		container.append((p1,p2,d,res))
+		res['player_1_id'] = p1
+		res['player_2_id'] = p2
+		res['Date'] = d
+		#container.append((p1,p2,d,res))
+		results = results.append(res)
+
 		# if i % 15 == 0:
 		# 	print(i * 100.0 / test.shape[0], 'percent')
-	results = pd.DataFrame(container)
+	#results = pd.DataFrame(container)
+	#print(results.iloc[0])
 
 	results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
-
+	joined_df = pd.merge(test,results,how="left",on=['player_1_id','player_2_id','Date'])
+	joined_df.to_csv('joined.csv', sep=",")
 	return
 
 if __name__ == '__main__':
