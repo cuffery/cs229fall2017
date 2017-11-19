@@ -34,7 +34,9 @@ def getPlayerIDTable(player_details,match_details):
     
     player_from_match = player_from_match[pd.notnull(player_from_match['player_lname'])]
     
-    df = pd.merge(player_from_match,player_from_details, on = ['player_lname','player_fname','player_finit'],how = 'left',validate = 'one_to_many')
+
+    df = pd.merge(player_from_match,player_from_ranking, on = ['player_lname','player_fname','player_finit'],how = 'left')#,validate = 'one_to_many')
+
     df = df[pd.notnull(df['player_id'])]
     df['player_concat'] = df['player_fname'] + df['player_lname'] + df['player_finit']
     return df[['player_concat','player_id']] 

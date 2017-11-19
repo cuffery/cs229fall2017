@@ -76,17 +76,19 @@ def FindCommonOpponents(p1opp, p2opp):
 def FindCommonOpponentStats(p1opp, p2opp):
 	oppForP1 = pd.DataFrame(p1opp[p1opp.opponent_ID.isin(p2opp.opponent_ID)])
 	oppForP2 = pd.DataFrame(p2opp[p2opp.opponent_ID.isin(p1opp.opponent_ID)])
+	# print(oppForP1.opponent_name)
 	# oppCount = 0
 	return(oppForP1, oppForP2)
 
 
 ## This returns a list of opponents for player p
-def FindOpponents(p, matches):
+def FindOpponents(p, matches, matchdate):
 ## find games where p won, and then where p lost (by player ID)
 ## we need to alter output format, so that it will in the format of:
 ## p, opp, tourney_id, surface, turney-level, p's stats - opp's stats for each feature
 	names = pd.DataFrame()
 	df = matches[matches.winner_id == p]
+	df = df[df.tourney_date < matchdate]
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
 							'surface':df.surface, 
@@ -117,6 +119,7 @@ def FindOpponents(p, matches):
 	opponents = list()
 	opponents.append(df_trim)
 	df = matches[matches.loser_id == p]
+	df = df[df.tourney_date < matchdate]
 	## now reverse order, as p is the loser now
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
@@ -145,7 +148,7 @@ def FindOpponents(p, matches):
 							'svpt_diff': df.l_svpt - df.w_svpt # this tracks return points
 							})
 	names = pd.concat(opponents)
- 	return(names)
+	return(names)
 
 
 ## Stats list for feature usage: 
@@ -196,23 +199,71 @@ def main():
 	atpmatches = readATPMatchesParseTime("../tennis_atp")
 
 	## input p1 and p2; test case
-	# p1 = 'Rafael Nadal'
-	# p2 = 'Roger Federer'
-	p1 = 104745 ##by ID for Nadal
-	p1opponents = FindOpponents(p1, atpmatches)
-	p2 = 103819 ##by ID for Federer
-	p2opponents = FindOpponents(p2, atpmatches)
+	# d = '20160929'
+	# p1 = 104327 ##
+	# p1opponents = FindOpponents(p1, atpmatches, d)
+
+	# print(p1opponents.shape[0])
+	# p2 = 106421 ##
+	# p2opponents = FindOpponents(p2, atpmatches, d)
+	# print(p2opponents.shape[0])
+	# avgp1 = ComputeHistoricalAvg(p1, d, p1opponents)
+	# avgp2 = ComputeHistoricalAvg(p2, d, p2opponents)
+	# res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
+	# print(res)
+
+
 	# print(p1opponents.head()) ## returns a dataframe
 
 	# avg = ComputeHistoricalAvg(p1, '20150101', p1opponents) ## test case
 	# print(avg.dtypes)
 	# print(avg)
-	(op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
-	avgp1 = ComputeHistoricalAvg(p1, '20150101', op1)
-	avgp2 = ComputeHistoricalAvg(p2, '20150101', op2)
+	# (op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
+	# print(op1)
+	# print(op2)
+	# avgp1 = ComputeHistoricalAvg(p1, d, op1)
+	# avgp2 = ComputeHistoricalAvg(p2, d, op2)
 
-	res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
-	res.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+	# res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
+	# print(res)
+	# res.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+	res = pd.DataFrame()
+
+	test = pd.read_csv('../yi_processing/joined_player_match.csv',
+                         index_col=None,
+                         header=0)
+
+	results = pd.DataFrame()
+	container = list()
+	for i in xrange(20):#xrange(test.shape[0]):
+		p1 = test.player_1_id[i]
+		p2 = test.player_2_id[i]
+		d = test.Date[i]
+		p1opponents = FindOpponents(p1, atpmatches, d)
+		p2opponents = FindOpponents(p2, atpmatches, d)
+		(op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
+		if (op1.shape[0] ==0 or op2.shape[0] == 0):
+			## check if we have any common opponent record before the match date, use date constraint
+			## if not, use player's historical performance regardless of common opponent
+			avgp1 = ComputeHistoricalAvg(p1, d, p1opponents)
+			avgp2 = ComputeHistoricalAvg(p2, d, p2opponents)
+			# if (avgp1.shape[0] == 0 or avgp2.shape[0]):
+			# 	res = ##preserve column headers, fill with NA
+			if (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
+				res = ComputeAvgFromCommonOpp(avgp1, avgp2)
+			
+		else:
+			## else, compute using common opponent
+			avgp1 = ComputeHistoricalAvg(p1, d, op1)
+			avgp2 = ComputeHistoricalAvg(p2, d, op2)
+			res = ComputeAvgFromCommonOpp(avgp1, avgp2)
+		container.append((p1,p2,d,res))
+		# if i % 15 == 0:
+		# 	print(i * 100.0 / test.shape[0], 'percent')
+	results = pd.DataFrame(container)
+
+	results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+
 	return
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ def importData():
     match_data = pd.read_csv('../tennis_MatchChartingProject/charting-m-matches.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     match_data['Date'] = pd.to_datetime(match_data['Date'])
     match_data = match_data.loc[match_data['Date'].dt.year >1999]
+    match_data = match_data.loc[match_data['Date'].dt.year <2017]
     match_data['Date']= match_data.Date.map(lambda x: x.strftime('%Y-%m-%d'))
     return match_data
 
