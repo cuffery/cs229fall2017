@@ -87,11 +87,11 @@ def FindCommonOpponentStats(p1opp, p2opp):
 
 ## This returns a list of opponents for player p
 def FindOpponents(p, matches):
-## find games where p won, and then where p lost
+## find games where p won, and then where p lost (by player ID)
 ## we need to alter output format, so that it will in the format of:
 ## p, opp, tourney_id, surface, turney-level, p's stats - opp's stats for each feature
 	names = pd.DataFrame()
-	df = matches[matches.winner_name == p]
+	df = matches[matches.winner_id == p]
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
 							'surface':df.surface, 
@@ -121,7 +121,7 @@ def FindOpponents(p, matches):
 
 	opponents = list()
 	opponents.append(df_trim)
-	df = matches[matches.loser_name == p]
+	df = matches[matches.loser_id == p]
 	## now reverse order, as p is the loser now
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
@@ -187,13 +187,11 @@ def main():
 	atpmatches = readATPMatchesParseTime("../tennis_atp")
 
 	## input p1 and p2; test case
-	p1 = 'Rafael Nadal'
-	p2 = 'Roger Federer'
+	# p1 = 'Rafael Nadal'
+	# p2 = 'Roger Federer'
+	p1 = 104745
 	p1opponents = FindOpponents(p1, atpmatches)
-	# print(p1opponents.head()) ## returns a dataframe
-	p2opponents = FindOpponents(p2, atpmatches)
-	# p1Stats = FindOpponentStats(p1, atpmatches)
-	# p2Stats = FindOpponentStats(p2, atpmatches)
+	print(p1opponents.head()) ## returns a dataframe
 
 	avg = ComputeHistoricalAvg(p1, '20150101', p1opponents)
 	print(avg.dtypes)
