@@ -71,7 +71,7 @@ def FindCommonOpponents(p1opponents, p2opponents):
 	s1 = pd.Series(p1opponents.opponent_name)
 	s2 = pd.Series(p2opponents.opponent_name)
 	s3 = s1.isin(s2)
-	print(s3)
+	# print(s3)
 	#opp = pd.concat(container)
 	return
 
@@ -102,6 +102,7 @@ def FindOpponents(p, matches):
 							'tourney_date':df.tourney_date, 
 							'match_num':df.match_num, 
 							'duration_minutes': df.minutes,
+							'match_result':1,
 							'player_name':df.winner_name,
 							'player_ID':df.winner_id,
 							'opponent_name':df.loser_name,
@@ -132,6 +133,7 @@ def FindOpponents(p, matches):
 							'tourney_date':df.tourney_date, 
 							'match_num':df.match_num, 
 							'duration_minutes': df.minutes,
+							'match_result':0,
 							'player_name':df.loser_name,
 							'player_ID':df.loser_id,
 							'opponent_name':df.winner_name,
