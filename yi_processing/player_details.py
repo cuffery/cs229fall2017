@@ -15,6 +15,7 @@ def importPlayerData():
     player = player.drop('player_dob',1)
     return player
 
+'''
 def importRankingData():
     ranking_00 = pd.read_csv('../tennis_atp/atp_rankings_00s.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1",low_memory = False)
     ranking_10 = pd.read_csv('../tennis_atp/atp_rankings_10s.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1",low_memory = False)
@@ -25,17 +26,20 @@ def importRankingData():
     ranking['ranking_date'] = pd.to_datetime(ranking['ranking_date'],format = '%Y%m%d')
     ranking['ranking_date']= ranking.ranking_date.map(lambda x: x.strftime('%Y-%m-%d'))
     return ranking
-
+'''
+'''
 def matchPlayerRank(player,ranking):
     player_rank = pd.merge(ranking, player, on='player_id',how = 'outer')
     return player_rank
 
+'''
+
 def main():
     player = importPlayerData()
-    ranking = importRankingData()
-    player_ranking = matchPlayerRank(player,ranking)
+    #ranking = importRankingData()
+    #player_ranking = matchPlayerRank(player,ranking)
     player.to_csv('player_details.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
-    player_ranking.to_csv('player_ranking.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+    #player_ranking.to_csv('player_ranking.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     return
 
 if __name__ == '__main__':
