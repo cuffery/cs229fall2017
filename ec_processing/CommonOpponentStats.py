@@ -69,15 +69,15 @@ def readATPMatchesParseTime(dirname):
 
 ## This returns a list of common opponents between p1 and p2
 def FindCommonOpponents(p1opp, p2opp):
-	opp = pd.DataFrame(p1opp[p1opp.opponent_ID.isin(p2opp.opponent_ID)])
-	oppCount = 0
-	print(opp.opponent_name.head())
-	return(opp)
+
+	return
 
 ## This calculates differential stats from common opponents
 def FindCommonOpponentStats(p1opp, p2opp):
-
-	return
+	oppForP1 = pd.DataFrame(p1opp[p1opp.opponent_ID.isin(p2opp.opponent_ID)])
+	oppForP2 = pd.DataFrame(p2opp[p2opp.opponent_ID.isin(p1opp.opponent_ID)])
+	# oppCount = 0
+	return(oppForP1, oppForP2)
 
 
 ## This returns a list of opponents for player p
@@ -99,8 +99,8 @@ def FindOpponents(p, matches):
 							'opponent_name':df.loser_name,
 							'opponent_ID':df.loser_id,
 							'same_handedness': df.winner_hand == df.loser_hand, # track handedness
-							'rank_dff':df.winner_rank - df.loser_rank, # we use winner-loser, so likely a negative number
-							'rank_pts_dff':df.winner_rank_points - df.loser_rank_points,
+							'rank_diff':df.winner_rank - df.loser_rank, # we use winner-loser, so likely a negative number
+							'rank_pts_diff':df.winner_rank_points - df.loser_rank_points,
 							'height_diff': df.winner_ht - df.loser_ht, 
 							'first_serve_perc_diff': df.w_1stIn*1.0/df.w_svpt - df.l_1stIn*1.0/df.l_svpt, #(first_in/serve_pts)First serve percentage
 							'ace_diff': df.w_ace - df.l_ace, 
@@ -130,8 +130,8 @@ def FindOpponents(p, matches):
 							'opponent_name':df.winner_name,
 							'opponent_ID':df.winner_id,
 							'same_handedness': df.loser_hand == df.winner_hand, # track handedness
-							'rank_dff':df.loser_rank - df.winner_rank, # we use winner-loser, so likely a negative number
-							'rank_pts_dff':df.loser_rank_points - df.winner_rank_points,
+							'rank_diff':df.loser_rank - df.winner_rank, # we use winner-loser, so likely a negative number
+							'rank_pts_diff':df.loser_rank_points - df.winner_rank_points,
 							'height_diff': df.loser_ht - df.winner_ht, 
 							'first_serve_perc_diff': df.l_1stIn*1.0/df.l_svpt - df.w_1stIn*1.0/df.w_svpt, #(first_in/serve_pts)First serve percentage
 							'ace_diff': df.l_ace - df.w_ace, 
@@ -146,11 +146,6 @@ def FindOpponents(p, matches):
 							})
 	names = pd.concat(opponents)
  	return(names)
-
-## This returns a list of opponents and their game stats for player p
-def FindOpponentStats(p, matches):
-## find games where p won, and then where p lost
- 	return
 
 
 ## Stats list for feature usage: 
@@ -176,6 +171,25 @@ def ComputeHistoricalAvg(p, match_date, matches):
 	res = grouped.aggregate(np.mean)
  	return(res)
 
+def ComputeAvgFromCommonOpp(op1, op2):
+	# df = pd.DataFrame({'duration_minutes': op1.duration_minutes - op2.duration_minutes,
+	# 					'rank_diff':op1.rank_diff - op2.rank_diff, # we use winner-loser, so likely a negative number
+	# 					'rank_pts_diff':op1.rank_pts_diff - op2.rank_pts_diff,
+	# 					'height_diff': op1.height_diff - op2.height_diff,
+	# 					'first_serve_perc_diff': op1.first_serve_perc_diff - op2.first_serve_perc_diff,
+	# 					'ace_diff': op1.ace_diff - op2.ace_diff, 
+	# 					'df_diff': op1.df_diff - op2.df_diff, # double faults
+	# 					'1st_serve_pts_won_diff': op1['1st_serve_pts_won_diff'] - op2['1st_serve_pts_won_diff']
+	# 					# '2nd_serve_pts_won_diff': df.l_2ndWon*1.0/(df.l_svpt - df.l_1stIn) - df.w_2ndWon*1.0/(df.w_svpt - df.w_1stIn),
+	# 					# 'bp_faced_diff':df.l_bpFaced - df.w_bpFaced, # break points faced
+	# 					# 'bp_saved_diff':df.l_bpSaved - df.w_bpSaved, # break points saved
+	# 					# 'bp_saving_perc_diff': df.l_bpSaved*1.0/df.l_bpFaced - df.w_bpSaved*1.0/df.w_bpFaced,
+	# 					# 'SvGms_diff':df.l_SvGms - df.w_SvGms, # serve game diff
+	# 					# 'svpt_diff': df.l_svpt - df.w_svpt # this tracks return points
+	# 					})
+	# print(op1,op2)
+	return(np.subtract(op1, op2))
+
 # main()
 def main():
 	# atpmatches = readATPMatches("../tennis_atp")
@@ -193,7 +207,11 @@ def main():
 	# avg = ComputeHistoricalAvg(p1, '20150101', p1opponents) ## test case
 	# print(avg.dtypes)
 	# print(avg)
-	FindCommonOpponents(p1opponents, p2opponents)
+	(op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
+	avgp1 = ComputeHistoricalAvg(p1, '20150101', op1)
+	avgp2 = ComputeHistoricalAvg(p2, '20150101', op2)
+
+	print(ComputeAvgFromCommonOpp(avgp1, avgp2)) ## don't use player id column
 
 	return
 
