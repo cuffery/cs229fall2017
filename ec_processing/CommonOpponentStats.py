@@ -211,8 +211,8 @@ def main():
 	avgp1 = ComputeHistoricalAvg(p1, '20150101', op1)
 	avgp2 = ComputeHistoricalAvg(p2, '20150101', op2)
 
-	print(ComputeAvgFromCommonOpp(avgp1, avgp2)) ## don't use player id column
-
+	res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
+	res.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 	return
 
 if __name__ == '__main__':
