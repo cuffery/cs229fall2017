@@ -276,9 +276,9 @@ def main():
 	#results = pd.DataFrame(container)
 	#print(results.iloc[0])
 
-	results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+	#results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 	joined_df = pd.merge(test,results,how="left",on=['player_1_id','player_2_id','Date'])
-	joined_df.to_csv('joined.csv', sep=",")
+	joined_df.to_csv('joined_hist_match.csv', sep=",")
 	return
 
 if __name__ == '__main__':
