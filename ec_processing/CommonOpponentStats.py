@@ -21,57 +21,57 @@ import datetime
 
 # util function
 def parse(t):
-    ret = []
-    for ts in t:
-        try:
-            string = str(ts)
-            tsdt = datetime.date(int(string[:4]), int(string[4:6]), int(string[6:]))
-        except TypeError:
-            tsdt = datetime.date(1900,1,1)
-        ret.append(tsdt)
-    return ret
+	ret = []
+	for ts in t:
+		try:
+			string = str(ts)
+			tsdt = datetime.date(int(string[:4]), int(string[4:6]), int(string[6:]))
+		except TypeError:
+			tsdt = datetime.date(1900,1,1)
+		ret.append(tsdt)
+	return ret
 
 def parse_date(td):
-    """helper function to parse time"""
-    resYear = float(td.days)/364.0                   # get the number of years including the the numbers after the dot
-    resMonth = int((resYear - int(resYear))*364/30)  # get the number of months, by multiply the number after the dot by 364 and divide by 30.
-    resYear = int(resYear)
-    return str(resYear) + "y" + str(resMonth) + "m"
+	"""helper function to parse time"""
+	resYear = float(td.days)/364.0                   # get the number of years including the the numbers after the dot
+	resMonth = int((resYear - int(resYear))*364/30)  # get the number of months, by multiply the number after the dot by 364 and divide by 30.
+	resYear = int(resYear)
+	return str(resYear) + "y" + str(resMonth) + "m"
 
 def readATPMatches(dirname):
-    """Reads ATP matches but does not parse time into datetime object"""
-    allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv") ##restrict training set to matches from 2000s
-    matches = pd.DataFrame()
-    container = list()
-    for filen in allFiles:
-        df = pd.read_csv(filen,
-                         index_col=None,
-                         header=0)
-        container.append(df)
-    matches = pd.concat(container)
-    return matches
+	"""Reads ATP matches but does not parse time into datetime object"""
+	allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv") ##restrict training set to matches from 2000s
+	matches = pd.DataFrame()
+	container = list()
+	for filen in allFiles:
+		df = pd.read_csv(filen,
+						 index_col=None,
+						 header=0)
+		container.append(df)
+	matches = pd.concat(container)
+	return matches
 
 def readATPMatchesParseTime(dirname):
-    """Reads ATP matches and parses time into datetime object"""
-    allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")
-    allFiles = allFiles[:-1]
-    matches = pd.DataFrame()
-    container = list()
-    for filen in allFiles:
-        df = pd.read_csv(filen,
-                         index_col=None,
-                         header=0,
-                         parse_dates=[5],
-                         encoding = "ISO-8859-1",
-                         date_parser=lambda t:parse(t)) ##errored out here
-        container.append(df)
-    matches = pd.concat(container)
-    return matches
+	"""Reads ATP matches and parses time into datetime object"""
+	allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")
+	allFiles = allFiles[:-1] ## avoid 2017 since its incomplete
+	matches = pd.DataFrame()
+	container = list()
+	for filen in allFiles:
+		df = pd.read_csv(filen,
+						 index_col=None,
+						 header=0,
+						 parse_dates=[5],
+						 encoding = "ISO-8859-1",
+						 date_parser=lambda t:parse(t)) ##errored out here
+		container.append(df)
+	matches = pd.concat(container)
+	return matches
 
 ## This returns a list of common opponents between p1 and p2
-def FindCommonOpponents(p1opp, p2opp):
+# def FindCommonOpponents(p1opp, p2opp):
 
-	return
+# 	return
 
 ## This calculates differential stats from common opponents
 def FindCommonOpponentStats(p1opp, p2opp):
@@ -173,7 +173,7 @@ def ComputeHistoricalAvg(p, match_date, matches):
 	historical = matches[matches.tourney_date < match_date]
 	grouped = historical.groupby('player_ID')
 	res = grouped.aggregate(np.mean)
- 	return(res)
+	return(res)
 
 def ComputeAvgFromCommonOpp(op1, op2):
 	# df = pd.DataFrame({'duration_minutes': op1.duration_minutes - op2.duration_minutes,
@@ -231,8 +231,8 @@ def main():
 	res = pd.DataFrame()
 
 	test = pd.read_csv('../yi_processing/joined_player_match.csv',
-                         index_col=None,
-                         header=0)
+						 index_col=None,
+						 header=0)
 
 	results = pd.DataFrame()
 	#results.column = ['p1','p2','d','1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'match_result', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff', 'p1', 'p2', 'd']
@@ -282,4 +282,4 @@ def main():
 	return
 
 if __name__ == '__main__':
-    main()
+	main()
