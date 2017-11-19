@@ -8,6 +8,10 @@ def importPlayerData():
     player['player_birthyear'] = player.player_dob.str[0:4]
     player['player_id'] = player['player_id'].astype(np.int64)
     player['player_finit'] = player['player_fname'].str[0]
+    
+    player['player_lname'] = player['player_lname'].str.split(' ').str[-1]
+    player['player_fname'] = player['player_fname'].str.split(' ').str[0]
+
     player = player.drop('player_dob',1)
     return player
 
@@ -30,6 +34,7 @@ def main():
     player = importPlayerData()
     ranking = importRankingData()
     player_ranking = matchPlayerRank(player,ranking)
+    player.to_csv('player_details.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     player_ranking.to_csv('player_ranking.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     return
 
