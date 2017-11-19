@@ -68,16 +68,11 @@ def readATPMatchesParseTime(dirname):
     return matches
 
 ## This returns a list of common opponents between p1 and p2
-## TODO
-def FindCommonOpponents(p1opponents, p2opponents):
-	opp = pd.DataFrame()
+def FindCommonOpponents(p1opp, p2opp):
+	opp = pd.DataFrame(p1opp[p1opp.opponent_ID.isin(p2opp.opponent_ID)])
 	oppCount = 0
-	s1 = pd.Series(p1opponents.opponent_name)
-	s2 = pd.Series(p2opponents.opponent_name)
-	s3 = s1.isin(s2)
-	# print(s3)
-	#opp = pd.concat(container)
-	return
+	print(opp.opponent_name.head())
+	return(opp)
 
 ## This calculates differential stats from common opponents
 def FindCommonOpponentStats(p1opp, p2opp):
@@ -189,14 +184,16 @@ def main():
 	## input p1 and p2; test case
 	# p1 = 'Rafael Nadal'
 	# p2 = 'Roger Federer'
-	p1 = 104745
+	p1 = 104745 ##by ID for Nadal
 	p1opponents = FindOpponents(p1, atpmatches)
-	print(p1opponents.head()) ## returns a dataframe
+	p2 = 103819 ##by ID for Federer
+	p2opponents = FindOpponents(p2, atpmatches)
+	# print(p1opponents.head()) ## returns a dataframe
 
-	avg = ComputeHistoricalAvg(p1, '20150101', p1opponents)
-	print(avg.dtypes)
-	print(avg)
-	# FindCommonOpponents(p1opponents, p2opponents)
+	# avg = ComputeHistoricalAvg(p1, '20150101', p1opponents) ## test case
+	# print(avg.dtypes)
+	# print(avg)
+	FindCommonOpponents(p1opponents, p2opponents)
 
 	return
 
