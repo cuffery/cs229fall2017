@@ -17,35 +17,42 @@ def importProcessed():
 def getClosestDate(matchdate,player_rank_history_date):
     return np.amax(player_rank_history_date[player_rank_history_date<matchdate])
 
-def getPlayer(player_from_ranking,player_from_match):
-    #takes player_details (array) from player table, and one player from each match
-    player_from_match.columns = ['player_fname','player_lname','player_finit']
-    
-    print("match table",player_from_match.shape)
-    print("player table",player_from_ranking.shape)
-
-    df = pd.merge(player_from_match,player_from_ranking, on = ['player_fname','player_lname'],how = 'left')
-    
-    print("merged table",df.shape)
-    
-    print("where merged table is null",df[pd.isnull(df['player_id'])])
-    #print("where player table is null",player_from_ranking[pd.isnull(player_from_ranking)])
-    #print("where match table is null",player_from_match[pd.isnull(player_from_match)])
-
-
-    #return player name in playing ranking table
-    return
-
-def mergeMatchRanking(player_ranking,match_details):
+def getPlayerIDTable(player_ranking,match_details):
     match_player1_info = ['player_1_fname','player_1_lname','player_1_finit']
     match_player2_info = ['player_2_fname','player_2_lname','player_2_finit']
     player_info = ['player_fname','player_lname','player_finit','player_id']
 
-    player_names_from_ranking = player_ranking[player_info].drop_duplicates()
+    player_from_ranking = player_ranking[player_info].drop_duplicates()
+    player1_names_from_match = match_details[match_player1_info].drop_duplicates()
+    player2_names_from_match = match_details[match_player2_info].drop_duplicates()
+    player1_names_from_match.columns = ['player_fname','player_lname','player_finit']
+    player2_names_from_match.columns =  ['player_fname','player_lname','player_finit']
+    
+    player_from_match = pd.concat([player1_names_from_match,player2_names_from_match])
+    player_from_match = player_from_match.drop_duplicates()
+    
+    player_from_match = player_from_match[pd.notnull(player_from_match['player_lname'])]
+    
+    df = pd.merge(player_from_match,player_from_ranking, on = ['player_lname','player_fname','player_finit'],how = 'left',validate = 'one_to_many')
+    df = df[pd.notnull(df['player_id'])]
+    df['player_concat'] = df['player_fname'] + df['player_lname'] + df['player_finit']
+    return df[['player_concat','player_id']]    
 
-    getPlayer(player_names_from_ranking,match_details[match_player1_info])
+def mergeMatchRanking(player_ranking,match_details):
+    player_id_table = getPlayerIDTable(player_ranking,match_details)
+    print(player_id_table)
 
+    match_details['player1_concat'] = match_details['player_1_fname'] + match_details['player_1_lname'] + match_details['player_1_finit']
+    match_details['player2_concat'] = match_details['player_2_fname'] + match_details['player_2_lname'] + match_details['player_2_finit']
 
+    match_details = match_details.merge(player_id_table,left_on='player1_concat',right_on = 'player_concat',how = 'left')
+    match_details=match_details.rename(columns = {'player_id':'player_1_id'})
+    
+    match_details = match_details.merge(player_id_table,left_on='player2_concat',right_on = 'player_concat',how = 'left')
+    match_details=match_details.rename(columns = {'player_id':'player_2_id'})
+
+    match_details =  match_details.drop(['player_concat_x','player_concat_y','player1_concat','player2_concat'],axis = 1)
+    print(match_details.iloc[0])
     #getPlayer(player_ranking[player_info],match_details[match_player1_info].iloc[0])
 
 
