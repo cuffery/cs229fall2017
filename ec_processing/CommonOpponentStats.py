@@ -199,37 +199,7 @@ def main():
 	# atpmatches = readATPMatches("../tennis_atp")
 	atpmatches = readATPMatchesParseTime("../tennis_atp")
 
-	## input p1 and p2; test case
-	# d = '20160929'
-	# p1 = 104327 ##
-	# p1opponents = FindOpponents(p1, atpmatches, d)
-
-	# print(p1opponents.shape[0])
-	# p2 = 106421 ##
-	# p2opponents = FindOpponents(p2, atpmatches, d)
-	# print(p2opponents.shape[0])
-	# avgp1 = ComputeHistoricalAvg(p1, d, p1opponents)
-	# avgp2 = ComputeHistoricalAvg(p2, d, p2opponents)
-	# res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
-	# print(res)
-
-
-	# print(p1opponents.head()) ## returns a dataframe
-
-	# avg = ComputeHistoricalAvg(p1, '20150101', p1opponents) ## test case
-	# print(avg.dtypes)
-	# print(avg)
-	# (op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
-	# print(op1)
-	# print(op2)
-	# avgp1 = ComputeHistoricalAvg(p1, d, op1)
-	# avgp2 = ComputeHistoricalAvg(p2, d, op2)
-
-	# res = ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
-	# print(res)
-	# res.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 	res = pd.DataFrame()
-
 	test = pd.read_csv('../yi_processing/joined_player_match.csv',
 						 index_col=None,
 						 header=0)

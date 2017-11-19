@@ -37,6 +37,7 @@ def main():
 
 	res = CPS.ComputeAvgFromCommonOpp(avgp1, avgp2) ## don't use player id column
 	print(res)
+	return
 
 if __name__ == '__main__':
 	main()
