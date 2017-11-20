@@ -99,12 +99,12 @@ A supervised machine learning algorithm requires a set of labeled examples for t
 \end{enumerate}
 In any given singles match, we have two players in one game. We denote them as Player 1 and Player 2, and thus define the target value as 
 $y = 1$ if Player 1 wins, 0 otherwise.
-\subsubsection{Symmetric Match\& Set Feature Representation}
+\subsubsection{Symmetric Match \& Set Feature Representation}
 As suggested by Sipko \cite{tennis1} and Clarke and Dyte \cite{Clarke2010}, when considering the charateristics of \textit{both} players in a given match, we are mainly interested in the \textit{difference} between two players for our variables of interest. Take for example, the rank information between two players for a given match. We construct a single feature called $RANK_DIFF = RANK_1 - RANK_2$, where $RANK_1$ and $RANK_2$ are the ranks of players 1 and 2 respectively at the time of the match. We selected this design (as opposed to the alternative of including both players' info, such as both $RANK_1$ and $RANK_2$), because previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley}, and this way we cut down the feature size by half as compared to the alternative. Reduced feature column count reduces the \textit{variance} of the model. Moreover, using difference variables allows us to have a symmetric model: it will produce the same results even if we swap Player 1 and Player 2, and define $y = 1$ if Player 2 wins, 0 otherwise. Should we have two different variables such as $RANK_1$ and $RANK_2$ for an asymmetric model, the model might assign different weights to the two variables despite them referring to the same foundamental feature, only differing by the player labelling. Having a \textit{symmetric} model eliminates the bias from that, as we only have one single difference variable for each feature now. 
-\subsubsection{Hybridizing Match\& Set Features}
+\subsubsection{Hybridizing Match \& Set Features}
 \textbf{TODO}
 \subsubsection{Common Opponent Model}
-We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} so as to achieve a fair comparison. Although this technique was developed for use in a hierarchical Markov model, Spiko \cite{tennis1} has shown that it adapts well in the land of machine learning algorithms and modeling. \\
+We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} so as to achieve a fair comparison. Although this technique was developed for use in a hierarchical Markov model, Spiko \cite{tennis1} has shown that it adapts well in the land of machine learning algorithms and modeling. 
 
 To show how we construct the features, we first look for a set of \textbf{common opponents} between the two players of a given match. Here, \textbf{common opponents} are defined as other players that the two (Player 1 and Player 2) have faced in the past on their own. Once we have all the common opponents, we find both players' performance against the common opponent ($C_i$), and average across all the common opponents. Lastly, we find the difference between the two players' average stats against common opponents as the selected feature. Figure \ref{fig:CO} shows an example of how we could construct the \textbf{ACE} feature (difference in average ace counts) against common opponents. 
 \begin{figure}
@@ -117,7 +117,7 @@ As shown in Figure \ref{fig:CO}, common opponents are labeled as $C_1, C_2, ...C
 Lastly, applying the idea of difference variables, we create the feature ACE by finding the difference in performance on this feature between Player 1 and Player 2: $$ACE = ACE_1 - ACE_2$$. 
 We can apply the same technique on other features too. The limitation of this method is apparent: it only works well when players actually have common opponents have played games with them before the queried match date. Hence, we need to think about how to handle edge cases.
 \subsubsection{Edge Cases}
-\textbf{TODO}
+We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents. When (1) happens, it is necessarily the case that it suffers from (2) no common opponents as well; but the reverse is not true. \textbf{TODO}: add in what we decided to do
 \subsection{Data Preparation}
 \subsubsection{Data Source}
 We obtain match-level data from \textbf{TODO}
@@ -147,7 +147,12 @@ We obtain match-level data from \textbf{TODO}
 \subsection{Yi Zhong}
 \subsection{Yubo Tian}
 \subsection{Yang "Eddie" Chen}
-
+\begin{itemize}
+\item Researched and reviewed relevant literature for applicable ideas, such as Clarke and Dyte \cite{Clarke2010} and O'Malley \cite{omalley} for difference variable, and Knottenbelt \cite{KNOTTENBELT20123820} for the common opponent model
+\item Implemented the Common Opponent Model to look up players stats from common opponents
+\item Generated ATP Match results for labels
+\item Typsetted (\LaTeX) the project milestone report
+\end{itemize}
 %----------------------------------------------------------------------------------------
 %	Conclusion
 %----------------------------------------------------------------------------------------
