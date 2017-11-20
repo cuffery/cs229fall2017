@@ -1,8 +1,30 @@
 \begin{thebibliography}{1}
 
+\bibitem{Clarke2010}
+Stephen~R. Clarke and David Dyte.
+\newblock Using official ratings to simulate major tennis tournaments.
+\newblock {\em International Transactions in Operational Research}, 7(6):585 --
+  594, 2010.
+
+\bibitem{omalley}
+O'Malley~A. James.
+\newblock Probability formulas and statistical analysis in tennis.
+\newblock {\em Journal of Quantitative Analysis in Sports}, 4(2):1--23, April
+  2008.
+
+\bibitem{KNOTTENBELT20123820}
+William~J. Knottenbelt, Demetris Spanias, and Agnieszka~M. Madurska.
+\newblock A common-opponent stochastic model for predicting the outcome of
+  professional tennis matches.
+\newblock {\em Computers and Mathematics with Applications}, 64(12):3820 --
+  3827, 2012.
+\newblock Theory and Practice of Stochastic Modeling.
+
 \bibitem{tennis1}
 Michal Sipko.
 \newblock Machine learning for the prediction of professional tennis matches.
-\newblock Master's thesis, Imperial College London.
+\newblock Meng computing – final year project, Imperial College London, June
+  2015.
+\newblock 15.
 
 \end{thebibliography}
