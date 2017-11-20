@@ -74,22 +74,25 @@ def readFile(filename):
 
 # debug(data)
 # description: container fucntion for testing/ sample code
-def debug(data):
+def debug(data_):
     #print(data.iloc[0])
     # total num of matches
     # print(rawData.match_id.unique().size)
     
     # num of matches in or after year 2000
     # criteria = rawData['match_id'].map(lambda x: x.startswith('20'))
+    data = data_[(data_['match_id'].map(lambda x: x.startswith('20') and not x.startswith('2017')))]
+#    data = data_[(data_['match_id'].map(lambda x: x.startswith('20'))) & (data_['set'] != 'Total')]
+
     # matches2017 = rawData[criteria]
-    # print(matches2017.match_id.unique().size)
+    print(data.match_id.unique().size)
     return
 
 
 # main()
 def main():
     rawData = readFile('../tennis_MatchChartingProject/charting-m-stats-Overview.csv')
-
+    debug(rawData)
     start_time = time.time()
     result = aggregateOnSet(rawData)
     

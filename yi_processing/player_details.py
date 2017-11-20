@@ -10,8 +10,8 @@ def importPlayerData():
     player['player_id'] = player['player_id'].astype(np.int64)
     player['player_finit'] = player['player_fname'].str[0]
     
-    player['player_lname'] = player['player_lname'].str.split(' ').str[-1]
-    player['player_fname'] = player['player_fname'].str.split(' ').str[0]
+    player['player_lname'] = player['player_lname'].str.strip().str.split(' ').str[-1]
+    player['player_fname'] = player['player_fname'].str.strip().str.split(' ').str[0]
     return player
 
 '''

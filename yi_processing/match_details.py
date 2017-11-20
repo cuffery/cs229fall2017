@@ -10,7 +10,6 @@ def importData():
     return match_data
 
 def processMatchDetails(match_data):
-    print(list(match_data))
     ls = ['match_id','Date']
 
     #set dummy variable for player hand
@@ -25,10 +24,13 @@ def processMatchDetails(match_data):
     ls.extend(('surface_hard','surface_grass','surface_clay'))
 
     #get first name, first initial and last name of players
-    match_data['player_1_fname'] = match_data['Player 1'].str.split(' ').str[0]
-    match_data['player_1_lname'] = match_data['Player 1'].str.split(' ').str[-1]
-    match_data['player_2_fname'] = match_data['Player 2'].str.split(' ').str[0]
-    match_data['player_2_lname'] = match_data['Player 2'].str.split(' ').str[-1]
+    match_data['player_1_fname'] = match_data['Player 1'].str.strip().str.split(' ').str[0]
+    match_data['player_1_lname'] = match_data['Player 1'].str.strip().str.split(' ').str[-1]
+    match_data['player_2_fname'] = match_data['Player 2'].str.strip().str.split(' ').str[0]
+    match_data['player_2_lname'] = match_data['Player 2'].str.strip().str.split(' ').str[-1]
+
+
+
     match_data['player_1_finit'] = match_data['player_1_fname'].str[0]
     match_data['player_2_finit'] = match_data['player_2_fname'].str[0]
     ls.extend(('player_1_fname','player_1_lname','player_2_fname','player_2_lname','player_1_finit','player_2_finit'))
@@ -43,7 +45,7 @@ def processMatchDetails(match_data):
 def main():
     raw_match_data = importData()
     processed_match_data = processMatchDetails(raw_match_data)
-    
+
     processed_match_data.to_csv('processed_match_details.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     return
 

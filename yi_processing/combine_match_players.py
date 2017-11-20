@@ -9,7 +9,6 @@ import match_details
 def importProcessed():
     player_details = pd.read_csv('../yi_processing/player_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     match_details = pd.read_csv('../yi_processing/processed_match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
-    print('match_details',match_details['match_id'].unique().size,match_details['match_id'].shape[0])
     match_details = match_details.drop_duplicates(['match_id'])
     #player_details = pd    .read_csv('../yi_processing/player_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     match_details['Date'] = pd.to_datetime(match_details['Date'])
@@ -20,28 +19,30 @@ def getClosestDate(matchdate,player_rank_history_date):
     return np.amax(player_rank_history_date[player_rank_history_date<matchdate])
 '''
 def getPlayerIDTable(player_details,match_details):
-    print('matchdetails',list(match_details))
-    print('playerdetails',list(player_details))
-    match_player1_info = ['player_1_fname','player_1_lname','player_1_finit']
-    match_player2_info = ['player_2_fname','player_2_lname','player_2_finit']
     player_info = ['player_fname','player_lname','player_finit','player_id']
 
     player_from_details = player_details[player_info]
-    print(player_from_details.shape)
+
+    # find unique players that appeared in match_details as either p1 or p2
+    match_player1_info = ['player_1_fname','player_1_lname','player_1_finit']
+    match_player2_info = ['player_2_fname','player_2_lname','player_2_finit']
 
     player1_names_from_match = match_details[match_player1_info].drop_duplicates()
-    
     player2_names_from_match = match_details[match_player2_info].drop_duplicates()
+
     player1_names_from_match.columns = ['player_fname','player_lname','player_finit']
     player2_names_from_match.columns =  ['player_fname','player_lname','player_finit']
-    
     player_from_match = pd.concat([player1_names_from_match,player2_names_from_match])
-    player_from_match = player_from_match.drop_duplicates()
-    
-    player_from_match  = player_from_match[pd.notnull(player_from_match['player_lname'])]
-    
 
-    df = pd.merge(player_from_match,player_from_details, on = ['player_lname','player_fname','player_finit'],how = 'inner')#,validate = 'one_to_many')
+    player_from_match = player_from_match.drop_duplicates()
+
+    # merge player_id into player_from_match
+    df = pd.merge(player_from_match, player_from_details, on = ['player_lname','player_fname','player_finit'], how = 'inner')#,validate = 'one_to_many')
+    #debug
+    print('merge player_id into player_from_match ================= player_from_match ====', player_from_details.shape)
+    print('merge player_id into player_from_match ================= player_from_match ====', 
+    player_from_details[['player_lname','player_fname','player_finit','player_id']].drop_duplicates().shape)
+    print('merge player_id into player_from_match =====================', df.shape)
 
     df = df[pd.notnull(df['player_id'])]
     df['player_concat'] = df['player_fname'] + df['player_lname'] + df['player_finit']
