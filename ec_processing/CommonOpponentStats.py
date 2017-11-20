@@ -284,7 +284,7 @@ def main():
 	#results = pd.DataFrame(container)
 	#print(results.iloc[0])
 
-	#results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+	# results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 	joined_df = pd.merge(test,results,how="left",on=['player_1_id','player_2_id','Date'])
 	print('joineddf',joined_df['match_id'].unique().size)
 	joined_df.to_csv('joined_hist_match.csv', sep=",",encoding = "ISO-8859-1")
