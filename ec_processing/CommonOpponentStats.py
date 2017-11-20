@@ -81,15 +81,7 @@ def FindCommonOpponentStats(p1opp, p2opp):
 	# oppCount = 0
 	return(oppForP1, oppForP2)
 
-
-## This returns a list of opponents for player p
-def FindOpponents(p, matches, matchdate):
-## find games where p won, and then where p lost (by player ID)
-## we need to alter output format, so that it will in the format of:
-## p, opp, tourney_id, surface, turney-level, p's stats - opp's stats for each feature
-	names = pd.DataFrame()
-	df = matches[matches.winner_id == p]
-	df = df[df.tourney_date < matchdate]
+def getWinnerStats(df):
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
 							'surface':df.surface, 
@@ -116,12 +108,9 @@ def FindOpponents(p, matches, matchdate):
 							'SvGms_diff':df.w_SvGms - df.l_SvGms, # serve game diff
 							'svpt_diff': df.w_svpt - df.l_svpt # this tracks return points
 							})
+	return(df_trim)
 
-	opponents = list()
-	opponents.append(df_trim)
-	df = matches[matches.loser_id == p]
-	df = df[df.tourney_date < matchdate]
-	## now reverse order, as p is the loser now
+def getLoserStats(df):
 	df_trim = pd.DataFrame({'tourney_id':df.tourney_id, 
 							'tourney_name':df.tourney_name, 
 							'surface':df.surface, 
@@ -148,6 +137,25 @@ def FindOpponents(p, matches, matchdate):
 							'SvGms_diff':df.l_SvGms - df.w_SvGms, # serve game diff
 							'svpt_diff': df.l_svpt - df.w_svpt # this tracks return points
 							})
+	return df_trim
+
+
+## This returns a list of opponents for player p
+def FindOpponents(p, matches, matchdate):
+## find games where p won, and then where p lost (by player ID)
+## we need to alter output format, so that it will in the format of:
+## p, opp, tourney_id, surface, turney-level, p's stats - opp's stats for each feature
+	names = pd.DataFrame()
+	df = matches[matches.winner_id == p]
+	df = df[df.tourney_date < matchdate]
+	df_trim = getWinnerStats(df)
+	opponents = list()
+	opponents.append(df_trim)
+	df = matches[matches.loser_id == p]
+	df = df[df.tourney_date < matchdate]
+	## now reverse order, as p is the loser now
+	df_trim=getLoserStats(df)
+	opponents.append(df_trim)
 	names = pd.concat(opponents)
 	return(names)
 
@@ -175,6 +183,22 @@ def ComputeHistoricalAvg(p, match_date, matches):
 	res = grouped.aggregate(np.mean)
 	return(res)
 
+def ComputeHistoricalAvgAll(matchdate, matches):
+	## match_date format: yyyymmdd
+	names = pd.DataFrame()
+	df = matches
+	df = df[df.tourney_date < matchdate]
+	df_trim = getWinnerStats(df)
+	opponents = list()
+	opponents.append(df_trim)
+	df = df[df.tourney_date < matchdate]
+	df_trim=getLoserStats(df)
+	opponents.append(df_trim)
+	names = pd.concat(opponents)
+	historical = names[names.tourney_date<matchdate]
+	res = historical.mean()
+	return(res)
+
 def ComputeAvgFromCommonOpp(op1, op2):
 	# df = pd.DataFrame({'duration_minutes': op1.duration_minutes - op2.duration_minutes,
 	# 					'rank_diff':op1.rank_diff - op2.rank_diff, # we use winner-loser, so likely a negative number
@@ -199,20 +223,21 @@ def main():
 	# atpmatches = readATPMatches("../tennis_atp")
 	atpmatches = readATPMatchesParseTime("../tennis_atp")
 
-	res = pd.DataFrame()
+	#res = pd.DataFrame()
 	test = pd.read_csv('../yi_processing/joined_player_match.csv',
 						 index_col=None,
 						 header=0)
 
 	results = pd.DataFrame()
 	#results.column = ['p1','p2','d','1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'match_result', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff', 'p1', 'p2', 'd']
-	#print(list(results))
-	'''
-	results['p1'] = test.player_1_id
-	results['p2'] = test.player_2_id
-	results['d'] = test.Date
-	'''
 
+	no_match_record_count_p1 = 0
+	no_match_record_count_p2 = 0
+
+	no_common_opponent_count =0
+	has_common_opponent_count = 0
+	res = pd.DataFrame(np.nan,index =xrange(1),columns = xrange(25))
+	print(res.shape)
 	container = list()
 	for i in xrange(test.shape[0]):
 		p1 = test.player_1_id[i]
@@ -226,21 +251,34 @@ def main():
 			## if not, use player's historical performance regardless of common opponent
 			avgp1 = ComputeHistoricalAvg(p1, d, p1opponents)
 			avgp2 = ComputeHistoricalAvg(p2, d, p2opponents)
-			# if (avgp1.shape[0] == 0 or avgp2.shape[0]):
+			if (avgp1.shape[0] == 0 or avgp2.shape[0] ==0):
+				res = pd.DataFrame(np.nan,index =xrange(1),columns = xrange(25))
+				res['no_historical_data'] = 1
+				no_match_record_count_p1+=1
 			# 	res = ##preserve column headers, fill with NA
 			if (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
 				res = ComputeAvgFromCommonOpp(avgp1, avgp2)
+				no_common_opponent_count +=1
+				res['no_common_opponent'] = 1
 		else:
 			## else, compute using common opponent
 			avgp1 = ComputeHistoricalAvg(p1, d, op1)
 			avgp2 = ComputeHistoricalAvg(p2, d, op2)
 			res = ComputeAvgFromCommonOpp(avgp1, avgp2)
+			has_common_opponent_count += 1
+			res['no_common_opponent'] = 0
+			res['no_historical_data'] = 0
+
 		res['player_1_id'] = p1
 		res['player_2_id'] = p2
 		res['Date'] = d
 		#container.append((p1,p2,d,res))
 		results = results.append(res)
+	print('no common opponent',no_common_opponent_count)
+	print('no historical data p1',no_match_record_count_p1)
+	print('no historical data',no_match_record_count_p2)
 
+	print('has common opponents',has_common_opponent_count)
 		# if i % 15 == 0:
 		# 	print(i * 100.0 / test.shape[0], 'percent')
 	#results = pd.DataFrame(container)
