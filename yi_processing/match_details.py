@@ -10,6 +10,7 @@ def importData():
     return match_data
 
 def processMatchDetails(match_data):
+    print(list(match_data))
     ls = ['match_id','Date']
 
     #set dummy variable for player hand

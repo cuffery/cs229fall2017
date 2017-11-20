@@ -226,8 +226,8 @@ def main():
 	#res = pd.DataFrame()
 	test = pd.read_csv('../yi_processing/joined_player_match.csv',
 						 index_col=None,
-						 header=0)
-
+						 header=0,encoding = "ISO-8859-1")
+	print(test['match_id'].unique().size)
 	results = pd.DataFrame()
 	#results.column = ['p1','p2','d','1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'match_result', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff', 'p1', 'p2', 'd']
 
@@ -286,7 +286,8 @@ def main():
 
 	#results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 	joined_df = pd.merge(test,results,how="left",on=['player_1_id','player_2_id','Date'])
-	joined_df.to_csv('joined_hist_match.csv', sep=",")
+	print('joineddf',joined_df['match_id'].unique().size)
+	joined_df.to_csv('joined_hist_match.csv', sep=",",encoding = "ISO-8859-1")
 	return
 
 if __name__ == '__main__':

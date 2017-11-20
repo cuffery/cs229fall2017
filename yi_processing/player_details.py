@@ -4,6 +4,7 @@ import numpy as np
 
 def importPlayerData():
     player = pd.read_csv('../tennis_atp/atp_players.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1",dtype = object)
+    print(list(player))
     player.columns = ['player_id','player_fname','player_lname','player_hand','player_dob','player_country']
     player['player_birthyear'] = player.player_dob.str[0:4]
     player['player_id'] = player['player_id'].astype(np.int64)
@@ -11,8 +12,6 @@ def importPlayerData():
     
     player['player_lname'] = player['player_lname'].str.split(' ').str[-1]
     player['player_fname'] = player['player_fname'].str.split(' ').str[0]
-
-    player = player.drop('player_dob',1)
     return player
 
 '''
