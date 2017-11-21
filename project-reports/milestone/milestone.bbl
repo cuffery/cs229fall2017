@@ -24,6 +24,13 @@ William~J. Knottenbelt, Demetris Spanias, and Agnieszka~M. Madurska.
   3827, 2012.
 \newblock Theory and Practice of Stochastic Modeling.
 
+\bibitem{tennis2setbyset}
+Agnieszka~M. Madurska.
+\newblock A set-by-set analysis method for predicting the outcome of
+  professional singles tennis matches.
+\newblock Master of engineering computing- final year project, Imperial College
+  London, amm208@doc.ic.ac.uk, June 2012.
+
 \bibitem{tennis_atp}
 Jeff Sackmann.
 \newblock Atp tennis rankings, results, and stats, 2017.
@@ -31,8 +38,7 @@ Jeff Sackmann.
 \bibitem{tennis1}
 Michal Sipko.
 \newblock Machine learning for the prediction of professional tennis matches.
-\newblock Meng computing – final year project, Imperial College London, June
-  2015.
-\newblock 15.
+\newblock Master of engineering computing - final year project, Imperial
+  College London, June 2015.
 
 \end{thebibliography}
