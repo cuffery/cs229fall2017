@@ -23,7 +23,12 @@ def processMatchDetails(match_data):
     match_data['surface_clay'] = np.where(match_data['Surface']=='Clay',1,0)
     ls.extend(('surface_hard','surface_grass','surface_clay'))
 
-    #get first name, first initial and last name of players
+    # get names and rename cols
+    match_data['p1_name'] = match_data['Player 1'].str.strip()
+    match_data['p2_name'] = match_data['Player 2'].str.strip()
+    ls.extend(('p1_name','p2_name'))
+
+    # get first name, first initial and last name of players
     match_data['player_1_fname'] = match_data['Player 1'].str.strip().str.split(' ').str[0]
     match_data['player_1_lname'] = match_data['Player 1'].str.strip().str.split(' ').str[-1]
     match_data['player_2_fname'] = match_data['Player 2'].str.strip().str.split(' ').str[0]
