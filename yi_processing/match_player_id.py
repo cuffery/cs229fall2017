@@ -9,23 +9,25 @@ def readATPMatchesParseTime(dirname):
     allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")[:-1] # -1 to avoid 2017 since its incomplete
     matches = pd.concat((pd.read_csv(file,encoding = "ISO-8859-1") for file in allFiles ))
     matches['tourney_name']=matches['tourney_name'].str.lower()
-    print('# of davis cup in atp',matches[matches['tourney_name'].str.contains("davis cup")].shape[0])
+    #print('# of davis cup in atp',matches[matches['tourney_name'].str.contains("davis cup")].shape[0])
     matches = matches[matches['tourney_name'].str.contains("davis cup")==False]
-    print('number of matches without davis cup',matches.shape[0])
+    #print('number of matches without davis cup',matches.shape[0])
     return matches
 
 
 def prepareMatchData(data_):
-    # drop 1 dup
+    # drop 1 dup match record
     match_details = data_.drop_duplicates(['match_id'])
-    print(list(match_details))
-    match_details['Tournament']=match_details['Tournament'].str.lower()
-    print('# of davis cup in matches',match_details[match_details['Tournament'].str.contains("davis cup")].shape[0])
-    matches = match_details[match_details['Tournament'].str.contains("davis cup")==False]
+
+    # print('# of davis cup in matches',match_details[match_details['Tournament'].str.contains("davis cup")].shape[0])
+
+    # remove davis_cup entries from match_details
+    match_details = match_details[match_details['Tournament'].str.lower().str.contains("davis cup")==False]
 
     match_details = match_details[['Date','match_id','player_1_fname','player_1_lname','player_2_fname','player_2_lname']]
     match_details['Date'] = match_details['Date'].apply(pd.to_datetime, format = '%Y-%m-%d')
 
+    print("prepareMatchData: match_details.shape", match_details.shape)
     return match_details
 
 
@@ -46,32 +48,30 @@ def getClosetDateATP(match_date,atp_date_col):
     s = match_date-atp_date_col
     return s[s>=0].amin()
 
-def findPlayerIdForMatches(match_data, atp_data):
-    '''
-    dup = match_data[match_data.duplicated(['player_1_lname','player_1_fname','Date'],keep = False)]
-    dup.to_csv('dup.csv')
-    print(dup[['match_id']])
-    print(match_data[['player_1_lname','player_1_fname','Date']].shape[0])
-    '''
-    dup = atp_data[atp_data.duplicated(['winner_lname','loser_lname','tourney_date'],keep = False)]
-    dup.to_csv('dup.csv')
+def findPlayerIdForMatches(match_data):
 
-    match_data['Closest_APT_Date']=match_data['Date'].apply((lambda x: getClosetDateATP(x,atp_data['tourney_date'])))
-    print(match_data['Closest_APT_Date'])
+    # dup = match_data[match_data.duplicated(['player_1_lname','player_1_fname','Date'],keep = False)]
+    # dup.to_csv('dup.csv')
+    # print(dup[['match_id']])
+    # print(match_data[['player_1_lname','player_1_fname','Date']].shape[0])
 
+    # dup = atp_data[atp_data.duplicated(['winner_lname','loser_lname','tourney_date'],keep = False)]
+    # dup.to_csv('dup.csv')
 
+    # match_data['Closest_APT_Date']=match_data['Date'].apply((lambda x: getClosetDateATP(x,atp_data['tourney_date'])))
+    # print(match_data['Closest_APT_Date'])
 
-
-    join_winner_1_loser_2 = pd.merge(match_data,atp_data[['tourney_date','loser_fname','loser_lname','winner_fname','winner_lname','winner_id','loser_id']],left_on=['Date','player_1_lname','player_2_lname'],right_on = ['tourney_date','winner_lname','loser_lname'],how = 'left')
-    join_winner_2_loser_1 = pd.merge(match_data,atp_data[['tourney_date','loser_fname','loser_lname','winner_fname','winner_lname','winner_id','loser_id']],left_on=['Date','player_1_lname','player_2_lname'],right_on = ['tourney_date','loser_lname','winner_lname'],how = 'inner')
-    #dup = match_data[match_data.duplicated(['player_1_lname','player_2_lname','Date'],keep = False)]
-    #dup.to_csv('dup.csv')
-
+    # join_winner_1_loser_2 = pd.merge(match_data,atp_data[['tourney_date','loser_fname','loser_lname','winner_fname','winner_lname','winner_id','loser_id']],left_on=['Date','player_1_lname','player_2_lname'],right_on = ['tourney_date','winner_lname','loser_lname'],how = 'left')
+    # join_winner_2_loser_1 = pd.merge(match_data,atp_data[['tourney_date','loser_fname','loser_lname','winner_fname','winner_lname','winner_id','loser_id']],left_on=['Date','player_1_lname','player_2_lname'],right_on = ['tourney_date','loser_lname','winner_lname'],how = 'inner')
+    # dup = match_data[match_data.duplicated(['player_1_lname','player_2_lname','Date'],keep = False)]
+    # dup.to_csv('dup.csv')
 
     print('match data',match_data.shape[0])
-    print('player_1 = winner',join_winner_1_loser_2.shape[0])
-    print('player_2 = winner',join_winner_2_loser_1.shape[0])
-    join_winner_1_loser_2.to_csv('debug_join.csv')
+    # print('player_1 = winner',join_winner_1_loser_2.shape[0])
+    # print('player_2 = winner',join_winner_2_loser_1.shape[0])
+    # join_winner_1_loser_2.to_csv('debug_join.csv')
+
+    print(match_data)
 
     return
 
@@ -81,10 +81,10 @@ def main():
     raw_match_details = pd.read_csv('../yi_processing/processed_match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     match_data = prepareMatchData(raw_match_details)
 
-    atp_match_data = prepareATPData()
+    # atp_match_data = prepareATPData()
 
-    # join
-    result = findPlayerIdForMatches(match_data, atp_match_data)
+    # find player ids for p1 and p2 for each match in match_data
+    result = findPlayerIdForMatches(match_data)
 
     #print(result.shape)
 

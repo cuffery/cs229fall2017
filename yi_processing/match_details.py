@@ -30,9 +30,9 @@ def processMatchDetails(match_data):
     match_data['player_2_lname'] = match_data['Player 2'].str.strip().str.split(' ').str[-1]
 
 
-
     match_data['player_1_finit'] = match_data['player_1_fname'].str[0]
     match_data['player_2_finit'] = match_data['player_2_fname'].str[0]
+
     ls.extend(('player_1_fname','player_1_lname','player_2_fname','player_2_lname','player_1_finit','player_2_finit'))
 
     #get grand slam

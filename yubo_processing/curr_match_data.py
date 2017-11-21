@@ -81,11 +81,29 @@ def debug(data_):
     
     # num of matches in or after year 2000
     # criteria = rawData['match_id'].map(lambda x: x.startswith('20'))
-    data = data_[(data_['match_id'].map(lambda x: x.startswith('20') and not x.startswith('2017')))]
+    # data = data_[(data_['match_id'].map(lambda x: x.startswith('20') and not x.startswith('2017')))]
 #    data = data_[(data_['match_id'].map(lambda x: x.startswith('20'))) & (data_['set'] != 'Total')]
 
     # matches2017 = rawData[criteria]
-    print(data.match_id.unique().size)
+    # print(data.match_id.unique().size)
+
+
+    # debug: verify the common match_ids from match_details(charting-matches) and curr_match_data(charting-overview)
+    curr_match_data = readFile('current_match_data.csv')
+    curr_match_id_count = curr_match_data.match_id.unique().size
+
+    match_details_data = readFile('../yi_processing/processed_match_details.csv')
+    match_details_match_id_count = match_details_data.match_id.unique().size
+
+    print("debug verification: ", curr_match_id_count, match_details_match_id_count)
+
+    c = curr_match_data[['match_id']].drop_duplicates()
+    d = match_details_data[['match_id','Date']]
+
+    s1 = pd.merge(c, d, how='inner', on=['match_id'])
+
+    print("verification: joined details/curr match: ", s1.shape)
+
     return
 
 
@@ -99,6 +117,7 @@ def main():
     print("--- %s seconds ---" % (time.time() - start_time))
     col = ['match_id','after_set','player','aces','dfs','unforced','1st_srv_pct','bk_pts','winners','pts_1st_srv_pct','pts_2nd_srv_pct','rcv_pts_pct','ttl_pts_won']
     result.to_csv('current_match_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1", columns=col)
+
     return
 
 if __name__ == '__main__':
