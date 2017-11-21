@@ -169,10 +169,10 @@ def SVM_Classifier(X,y):
 	print('mean accuracy score: %.2f' % clf.score(X_test, y_test))
 
 	## show cross-validation
-	print('			Running cross-validation...')
-	clf = svm.SVC(kernel='linear', C=1)
-	scores = cross_val_score(clf, X, y, cv=5) #5-fold
-	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+	# print('			Running cross-validation...')
+	# clf = svm.SVC(kernel='linear', C=1)
+	# scores = cross_val_score(clf, X, y, cv=5) #5-fold
+	# print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 	return 	
 
@@ -190,7 +190,7 @@ def main():
 	# 					 header=0,
 	# 					 encoding = "ISO-8859-1")
 
-	data = generateTrainingData("2011") ## input year
+	data = generateTrainingData("2012") ## input year
 	data.to_csv('processed.csv', sep=",",encoding = "ISO-8859-1")
 
 	data = data.drop('match_num',axis=1) 
@@ -221,6 +221,7 @@ def main():
 	SVM_Classifier(X, y)
 
 	## running naive bayes
+	print('--------- Running Gaussian Naive Bayes -------------')
 	gnb = GaussianNB()
 	y_pred = gnb.fit(X, y).predict(X)
 	print("Number of mislabeled points out of a total of %d points : %d" 
