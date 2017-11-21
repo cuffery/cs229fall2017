@@ -43,32 +43,36 @@ def main():
     after_set_2_train = train[train['after_set']==2]
     after_set_1_dev = dev[dev['after_set']==1]
     after_set_2_dev = dev[dev['after_set']==2]
-
+    '''
     #####LOGISTIC#####
     #on training only
-    #get dev set accuracy comparison for after 1 set and after 2 set for logistic regression
+    #get training and dev set accuracy comparison for after 1 set and after 2 set for logistic regression
     acc = logistic.logPredSet1Set2Diff(train,dev,drop_col)
     print('log diff',acc)
-    '''
+    
     #get error analysis
     training_error_analysis_after_set_1 = logistic.getTrainingErrorAnalysis(after_set_1_train,drop_col)
     training_error_analysis_after_set_2 = logistic.getTrainingErrorAnalysis(after_set_2_train,drop_col)
+    testing_error_analysis_after_set_1 = logistic.getTestingErrorAnalysis(after_set_1_train,after_set_1_dev,drop_col)
+    testing_error_analysis_after_set_2 = logistic.getTestingErrorAnalysis(after_set_2_train,after_set_2_dev,drop_col)
 
-    #print('training error analysis after set 1',error_analysis_after_set_1)
-    #print('training error analysis after set 2',error_analysis_after_set_2)
+    print('training error analysis after set 1',training_error_analysis_after_set_1)
+    print('training error analysis after set 2',training_error_analysis_after_set_2)
+    print('testing error analysis after set 1',testing_error_analysis_after_set_1)
+    print('testing error analysis after set 2',testing_error_analysis_after_set_2)
     '''
-    '''
-    #on dev only
-    #get accuracy comparison for after 1 set and after 2 set
-    acc1,acc2 = logistic.logPredSet1Set2Diff(dev,drop_col)
-    print('dev',acc1,acc2)
-
     #####SVM#####
-    acc1,acc2 = svm.svmPredSet1Set2Diff(train,drop_col)
-    print(acc1,acc2)
-    error_analysis_after_set_1 = svm.getErrorAnalysis(after_set_1,drop_col,'test')
-    error_analysis_after_set_2 = svm.getErrorAnalysis(after_set_2,drop_col,'test')
-    '''
+    acc = svm.svmPredSet1Set2Diff(train,dev,drop_col)
+    print('svm diff',acc)
+    training_error_analysis_after_set_1 = svm.getTrainingErrorAnalysis(after_set_1_train,drop_col)
+    training_error_analysis_after_set_2 = svm.getTrainingErrorAnalysis(after_set_2_train,drop_col)
+    testing_error_analysis_after_set_1 = svm.getTestingErrorAnalysis(after_set_1_train,after_set_1_dev,drop_col)
+    testing_error_analysis_after_set_2 = svm.getTestingErrorAnalysis(after_set_2_train,after_set_2_dev,drop_col)
+    
+    print('training error analysis after set 1',training_error_analysis_after_set_1)
+    print('training error analysis after set 2',training_error_analysis_after_set_2)
+    print('testing error analysis after set 1',testing_error_analysis_after_set_1)
+    print('testing error analysis after set 2',testing_error_analysis_after_set_2)
     return
 
 if __name__ == '__main__':
