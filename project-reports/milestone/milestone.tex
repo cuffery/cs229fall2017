@@ -91,13 +91,14 @@ Tennis is an ideal candidate for a hierarchical model as a match consists of a s
 \section{Method}
 \subsection{Feature Extraction}
 \subsubsection{Feature Representation}
+\label{sec:label}
 A supervised machine learning algorithm requires a set of labeled examples for training. In our project, each training example combines both the historical aspect, which is the stats calculated from the past, and the real-time aspect, which is the immediately preceding set information. (Reminder that our project focuses on predicting match outcome form both the historical data and the real-time info). In terms of representation, the training example is made up of:
 \begin{enumerate}
 \item A vector of input features (X), describing the players and the match
 \item A target value (y), indicating the match outcome
 \end{enumerate}
 In any given singles match, we have two players in one game. We denote them as Player 1 and Player 2, and thus define the target value as 
-$y = 1$ if Player 1 wins, 0 otherwise.
+$y = 1$ if Player 1 wins, 0 otherwise. In the datasets we found online, it is usually the case that Player 1 is denoted as the winner and Player 2 being the loser. In this case, we duplicated the entire dataset but swapped Player 1 and Player 2 and set $y = 0$, as well as inverted all difference features. This way, we still maintained our notation, but also made sure the model has both 1 and 0 labels to train on. 
 \subsubsection{Symmetric Match \& Set Feature Representation}
 As suggested by Sipko \cite{tennis1} and Clarke and Dyte \cite{Clarke2010}, when considering the charateristics of \textit{both} players in a given match, we are mainly interested in the \textit{difference} between two players for our variables of interest. Take for example, the rank information between two players for a given match. We construct a single feature called $RANK_DIFF = RANK_1 - RANK_2$, where $RANK_1$ and $RANK_2$ are the ranks of players 1 and 2 respectively at the time of the match. We selected this design (as opposed to the alternative of including both players' info, such as both $RANK_1$ and $RANK_2$), because previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley}, and this way we cut down the feature size by half as compared to the alternative. Reduced feature column count reduces the \textit{variance} of the model. Moreover, using difference variables allows us to have a symmetric model: it will produce the same results even if we swap Player 1 and Player 2, and define $y = 1$ if Player 2 wins, 0 otherwise. Should we have two different variables such as $RANK_1$ and $RANK_2$ for an asymmetric model, the model might assign different weights to the two variables despite them referring to the same foundamental feature, only differing by the player labelling. Having a \textit{symmetric} model eliminates the bias from that, as we only have one single difference variable for each feature now. 
 \subsubsection{Hybridizing Match \& Set Features}
@@ -136,7 +137,7 @@ We present the list of extracted features in Table \ref{tab:features}. Note that
     \begin{tabular}{  l | p{10cm} }
     \hline
     Feature  & Description \\ \hline
-    \textbf{DURATION}  & Match duration in minutes \\ \hline
+    \textbf{DURATION}  & Match duration in minutes (\textit{not difference}) \\ \hline
     \textbf{SAME\_HANDEDNESS}  & Tracking, on average, the frequency of facing opponents who have the same dominant hand \\ \hline
     \textbf{RANK}  & ATP rank \\ \hline
     \textbf{RANK\_PTS}  & ATP rank points \\ \hline
@@ -163,15 +164,57 @@ We present the list of extracted features in Table \ref{tab:features}. Note that
 %----------------------------------------------------------------------------------------
 
 \section{Preliminary Experiments}
-\subsection{Logistic Regression Model}
-\subsection{Naive Bayes Classifier}
+As the team is still working on connecting the historical, match-level dataset with the real-time, set-level data sets, we ran some preliminary models fitting the two datasets separately instead. We use scikit-learn's implementation of the various models \cite{scikit-learn}.
+\subsection{Historical, Match-level Dataset: Logistic Regression Model}
+Applying a train-test split of 2:1, we trained a logistic regression model on 2/3 of all the ATP matches from 2012. Following the labelling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features. \textbf{TODO}: might need more explanation? 
+
+We achieved an impressive accuracy rate of 87.8\% just using the historical, match-level dataset with common opponent model and difference variables. 
+\subsubsection{Error Analysis}
+A preliminary error analysis was done to explore the relative importance of all the extracted features, and the results are shown in Table~\ref{tab:logreg}. Interestingly, we note that \textbf{RANK\_PTS} accounts for almost $20\%$ of the performance. 
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | l | l | p{5cm} }
+    \hline
+Order &     Accuracy Rate    &         Feature    &  Performance Difference \\ \hline
+0    &    0.878170 &              \textbf{SVPT}  &      \\ \hline
+1    &    0.878170 &        \textbf{SAME\_HANDEDNESS}  & 0.00\% \\ \hline
+2    &    0.666483 &          \textbf{RANK\_PTS} & -21.17\% \\ \hline
+3    &    0.657111 &              \textbf{RANK} & -0.94\% \\ \hline
+4    &    0.660419 &            \textbf{HEIGHT} & 0.33\% \\ \hline
+5    &    0.659868 &  \textbf{FSP} & -0.06\% \\ \hline
+6    &    0.665932 &       \textbf{DURATION} &  0.61\% \\ \hline
+7    &    0.661521 &                \textbf{DF} & -0.44\% \\ \hline
+8    &    0.664278 &    \textbf{BPP} &  0.28\% \\ \hline
+9    &    0.664829 &         \textbf{BP\_SAVED} &  0.06\% \\ \hline
+10   &    0.665380 &          \textbf{BP\_FACED}  & 0.06\% \\ \hline
+11   &    0.648842 &    \textbf{ACE} & -1.65\% \\ \hline
+12   &    0.661521 &             \textbf{SVGM} & 1.27\% \\ \hline
+13   &    0.659868 & \textbf{W2SP} & -0.17\% \\ \hline
+    \end{tabular}
+    \caption{Summary of extracted feature performance in the preliminary logistic regression model fitting on historical match-level data}
+    \label{tab:logreg}
+    \end{table}
+\end{center}
+\subsection{Historical, Match-level Dataset: Naive Bayes Classifier}
+We also ran the data through a Gaussian-based Naive Bayes classifier, which showed an impressive 86.9\% accuracy rate (misclassifying 718 points out of 5496). As expected, it was also extremely fast. The impressive performance indicates that the extracted features might indeed be conditionally independent of each other, which is something we never thought of before, and look to explore in the next steps. On a first glance, it seems to suggest that given Player $i$ won the match, his/her performance on aces and rank point difference or double faults are indeed almost independent. We were surprised by the results, and more sanity check is needed before we put ourselves behind this. 
+\subsection{Real-time, Set-level Dataset: Logistic Regression Model}
+\textbf{TODO}
+\subsection{Real-time, Set-level Dataset:  SVM}
+\textbf{TODO}
 
 %----------------------------------------------------------------------------------------
 %	Section Next Steps
 %----------------------------------------------------------------------------------------
 
 \section{Next Steps}
+The biggest next step is to connect the historical, match-level dataset with the real-time, set-level data set in order to conduct further experiments. We also plan to incorporate more sophisticated ideas on feature scaling in the context of tennis, such as \textbf{time discounting}, \textbf{surface weighting}, and the effect of fatigue and player injury. Moreover, we wanted to explore more interesting features such as \textbf{head-to-head results}, as well as to conduct \textbf{Principal Component Analysis} and \textbf{Feature Selection} to understand the inter-correlation between features, and which features are more predictive than others. Lastly, we plan to benchmark various machine learning models' performances, and to fine-tune the best them to achieve optimal performance. 
+%----------------------------------------------------------------------------------------
+%	Conclusion
+%----------------------------------------------------------------------------------------
+\section{Conclusion}
+The use of common opponent model and difference variables already offer high predictive power in simple machine learning models such as logistic regression and Naive Bayes, and it's exciting to see with fine-tuning and more exploration and connecting datasets what we can achieve. It's also helpful to learn that ATP rank point difference between two players alone is already predictive of their likely match outcome. 
 
+\appendix
 %----------------------------------------------------------------------------------------
 %	Section Contributions
 %----------------------------------------------------------------------------------------
@@ -186,13 +229,7 @@ We present the list of extracted features in Table \ref{tab:features}. Note that
 \item Generated ATP Match results for labels
 \item Typsetted (\LaTeX) the project milestone report
 \end{itemize}
-%----------------------------------------------------------------------------------------
-%	Conclusion
-%----------------------------------------------------------------------------------------
 
-\section{Conclusion}
-
-\appendix
 \section{Appendix: Project Roadmap}
 \begin{itemize}
 \item \textbf{11/13 - 11/19}: Data cleaning

@@ -26,6 +26,8 @@ def importData():
 	data = data.drop('opponent_ID',axis=1)
 	data = data.drop('player_ID',axis=1) ##if I generate afresh, I dont need this line
 	data = data.drop('Date',axis=1)
+	data = data.drop('player_2_id',axis=1)
+	data = data.drop('player_1_id',axis=1)
 	print(data.shape)
 
 	return data

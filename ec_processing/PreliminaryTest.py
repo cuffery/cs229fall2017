@@ -185,19 +185,21 @@ def main():
 	## to save time, we just load from csv
 	# res.to_csv('processed.csv', sep=",",encoding = "ISO-8859-1")
 
-	# data = pd.read_csv("processed.csv",
-	# 					 index_col=None,
-	# 					 header=0,
-	# 					 encoding = "ISO-8859-1")
+	data = pd.read_csv("processed.csv",
+						 index_col=None,
+						 header=0,
+						 encoding = "ISO-8859-1")
 
-	data = generateTrainingData("2012") ## input year
-	data.to_csv('processed.csv', sep=",",encoding = "ISO-8859-1")
+	# data = generateTrainingData("2012") ## input year
+	# data.to_csv('processed.csv', sep=",",encoding = "ISO-8859-1")
 
 	data = data.drop('match_num',axis=1) 
 	data = data.drop('match_result',axis=1)
 	data = data.drop('opponent_ID',axis=1)
-	# data = data.drop('player_ID',axis=1) ##if I generate afresh, I dont need this line
+	data = data.drop('player_ID',axis=1) ##if I generate afresh, I dont need this line
 	data = data.drop('Date',axis=1)
+	data = data.drop('player_2_id',axis=1)
+	data = data.drop('player_1_id',axis=1)
 	print(data.shape)
 	## Cleaning data, ridding NaN
 	trimmed = data.dropna(axis=1, how='all', thresh=None, subset=None, inplace=False)
@@ -218,7 +220,7 @@ def main():
 	logreg(X, y)
 
 	## running svm
-	SVM_Classifier(X, y)
+	# SVM_Classifier(X, y)
 
 	## running naive bayes
 	print('--------- Running Gaussian Naive Bayes -------------')
