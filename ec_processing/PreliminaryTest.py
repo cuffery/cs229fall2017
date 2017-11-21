@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn import svm
 from sklearn.model_selection import cross_val_score
+from sklearn.naive_bayes import GaussianNB
 
 # util function
 def parse(t):
@@ -161,7 +162,7 @@ def SVM_Classifier(X,y):
 	print(X_test.shape)
 
 	## Now, create a Logistic Regression model
-	clf = svm.SVC(kernel='poly', C=1).fit(X_train, y_train)
+	clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
 	y_pred = clf.predict(X_test)
 
 	# The scores
@@ -169,7 +170,7 @@ def SVM_Classifier(X,y):
 
 	## show cross-validation
 	print('			Running cross-validation...')
-	clf = svm.SVC(kernel='poly', C=1)
+	clf = svm.SVC(kernel='linear', C=1)
 	scores = cross_val_score(clf, X, y, cv=5) #5-fold
 	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
@@ -214,9 +215,11 @@ def main():
 	## running svm
 	SVM_Classifier(X, y)
 
-
 	## running naive bayes
-
+	gnb = GaussianNB()
+	y_pred = gnb.fit(X, y).predict(X)
+	print("Number of mislabeled points out of a total of %d points : %d" 
+		% (X.shape[0],(y != y_pred).sum()))
 
 	return
 
