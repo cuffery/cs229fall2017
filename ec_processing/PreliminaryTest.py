@@ -16,6 +16,8 @@ import CommonOpponentStats as COS
 from sklearn import linear_model
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn import svm
+from sklearn.model_selection import cross_val_score
 
 # util function
 def parse(t):
@@ -125,7 +127,53 @@ def generateTrainingData():
 	# print(res.dtypes)
 	return results
 	# return
-	
+
+def logreg(X,y):
+## do test - training split
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=233)
+	print('--------- Running Logistic Regression -------------')
+	print(y_train.shape)
+	print(X_test.shape)
+
+	## Now, create a Logistic Regression model
+	regr = linear_model.LogisticRegression()
+	regr.fit(X_train, y_train)
+	y_pred = regr.predict(X_test)
+
+	# The scores
+	print('mean accuracy score: %.2f' % regr.score(X_test, y_test))
+
+	# Plot outputs
+	# plt.scatter(X_test, y_test,  color='black')
+	# plt.plot(X_test, y_pred, color='blue', linewidth=3)
+
+	# plt.xticks(())
+	# plt.yticks(())
+
+	# plt.show()
+	return
+
+def SVM_Classifier(X,y):
+## do test - training split
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=233)
+	print('--------- Running SVM Classifier -------------')
+	print(y_train.shape)
+	print(X_test.shape)
+
+	## Now, create a Logistic Regression model
+	clf = svm.SVC(kernel='poly', C=1).fit(X_train, y_train)
+	y_pred = clf.predict(X_test)
+
+	# The scores
+	print('mean accuracy score: %.2f' % clf.score(X_test, y_test))
+
+	## show cross-validation
+	print('			Running cross-validation...')
+	clf = svm.SVC(kernel='poly', C=1)
+	scores = cross_val_score(clf, X, y, cv=5) #5-fold
+	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+	return 	
 
 # main()
 def main():
@@ -160,29 +208,15 @@ def main():
 	X = X.drop('label', axis = 1)
 	print(X.shape)
 
+	## running logistic regression
+	logreg(X, y)
 
-	## do test - training split
-	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=233)
+	## running svm
+	SVM_Classifier(X, y)
 
-	print(y_train.shape)
-	print(X_test.shape)
 
-	## Now, create a Logistic Regression model
-	regr = linear_model.LogisticRegression()
-	regr.fit(X_train, y_train)
-	y_pred = regr.predict(X_test)
+	## running naive bayes
 
-	# The scores
-	print('score: %.2f' % regr.score(X_test, y_test))
-
-	# Plot outputs
-	# plt.scatter(X_test, y_test,  color='black')
-	# plt.plot(X_test, y_pred, color='blue', linewidth=3)
-
-	# plt.xticks(())
-	# plt.yticks(())
-
-	# plt.show()
 
 	return
 
