@@ -22,7 +22,7 @@ def processMatch(match):
                 'aces': d['aces'].sum(),
                 'dfs': d['dfs'].sum(),
                 'unforced': d['unforced'].sum(),
-                '1st_srv_pcts': d['first_in'].sum() / d['serve_pts'].sum(),
+                '1st_srv_pct': d['first_in'].sum() / d['serve_pts'].sum(),
                 'bk_pts': d['bk_pts'].sum(),
                 'winners': d['winners'].sum(),
                 'pts_1st_srv_pct': d['first_won'].sum() / d['first_in'].sum(),
