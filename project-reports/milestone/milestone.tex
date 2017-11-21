@@ -63,7 +63,8 @@
 \normalfont \normalsize 
 \textsc{Stanford CS 229 Fall 2017} \\ [25pt] % Your university, school and/or department name(s)
 \horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
-\huge Final Project Milestone\\ % The assignment title
+\Large Final Project Milestone: \\
+\Large Real Time Tennis Match Prediction Using Machine Learning\\ % The assignment title
 \horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
 }
 
@@ -120,9 +121,43 @@ We can apply the same technique on other features too. The limitation of this me
 We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents. When (1) happens, it is necessarily the case that it suffers from (2) no common opponents as well; but the reverse is not true. \textbf{TODO}: add in what we decided to do
 \subsection{Data Preparation}
 \subsubsection{Data Source}
-We obtain match-level data from \textbf{TODO}
+We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. MCP is essentially a crowdsourced shot-by-shot professional tennis dataset, and it enables us to have a real-time lens into tennis matches. 
 \subsubsection{Data Cleaning \& Transformation}
-\textbf{TODO}
+\textbf{TODO}: Things to talk about:
+\begin{itemize}
+\item Validations run on the datasets
+\item How to detect and remove duplicates
+\item Decision on dropping Davis Cup data (because team tourney might have different strategies, hence introducing biases)
+\item How to merge two datasets together
+\item (TODO for future work) Standardize features? 
+\end{itemize}
+\subsection{Feature List}
+We present the list of extracted features in Table \ref{tab:features}. Note that all these features are difference variables unless otherwise noted. 
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | p{10cm} }
+    \hline
+    Feature  & Description \\ \hline
+    \textbf{DURATION}  & Match duration in minutes \\ \hline
+    \textbf{SAME\_HANDEDNESS}  & Tracking, on average, the frequency of facing opponents who have the same dominant hand \\ \hline
+    \textbf{RANK}  & ATP rank \\ \hline
+    \textbf{RANK\_PTS}  & ATP rank points \\ \hline
+    \textbf{HEIGHT}  & Player height \\ \hline
+    \textbf{FSP}  & First serve success percentage \\ \hline
+    \textbf{ACE}  & Average number of aces per game \\ \hline
+    \textbf{DF}  & Average number of double faults per game \\ \hline
+    \textbf{BP\_FACED}  & Average number of break points faced per game \\ \hline
+    \textbf{BP\_SAVED}  & Average number of break points saved per game \\ \hline
+    \textbf{BPP}  & Break point saving percentage \\ \hline
+    \textbf{SVGM}  & Average number of serve games \\ \hline
+    \textbf{W1SP}  & Winning on first serve percentage \\ \hline
+    \textbf{W2SP}  & Winning on second serve percentage \\ \hline
+    \textbf{SVPT}  & Average number of serve points per game \\ \hline
+    \end{tabular}
+    \caption{Summary of extracted features}
+    \label{tab:features}
+    \end{table}
+\end{center}
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------

@@ -3,44 +3,44 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: milestone.aux
 The style file: plain.bst
 Database file #1: ref.bib
-You've used 4 entries,
+You've used 6 entries,
             2118 wiz_defined-function locations,
-            529 strings with 4753 characters,
-and the built_in function-call counts, 1230 in all, are:
-= -- 123
-> -- 45
+            538 strings with 4920 characters,
+and the built_in function-call counts, 1626 in all, are:
+= -- 157
+> -- 59
 < -- 0
-+ -- 19
-- -- 14
-* -- 92
-:= -- 218
-add.period$ -- 14
-call.type$ -- 4
-change.case$ -- 20
++ -- 26
+- -- 18
+* -- 104
+:= -- 282
+add.period$ -- 18
+call.type$ -- 6
+change.case$ -- 28
 chr.to.int$ -- 0
-cite$ -- 4
-duplicate$ -- 41
-empty$ -- 99
-format.name$ -- 14
-if$ -- 251
+cite$ -- 6
+duplicate$ -- 55
+empty$ -- 143
+format.name$ -- 18
+if$ -- 337
 int.to.chr$ -- 0
-int.to.str$ -- 4
+int.to.str$ -- 6
 missing$ -- 3
-newline$ -- 25
-num.names$ -- 8
-pop$ -- 11
+newline$ -- 33
+num.names$ -- 12
+pop$ -- 29
 preamble$ -- 1
-purify$ -- 15
+purify$ -- 21
 quote$ -- 0
-skip$ -- 27
+skip$ -- 43
 stack$ -- 0
-substring$ -- 93
-swap$ -- 3
+substring$ -- 104
+swap$ -- 5
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 16
+type$ -- 24
 warning$ -- 0
-while$ -- 11
-width$ -- 5
-write$ -- 50
+while$ -- 15
+width$ -- 7
+write$ -- 66
