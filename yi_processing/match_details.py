@@ -10,7 +10,7 @@ def importData():
     return match_data
 
 def processMatchDetails(match_data):
-    ls = ['match_id','Date']
+    ls = ['match_id','Date','Tournament']
 
     #set dummy variable for player hand
     match_data['player_1_right'] = np.where(match_data['Pl 1 hand']=='R',1,0)
