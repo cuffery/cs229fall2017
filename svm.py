@@ -10,6 +10,11 @@ def getAccuracy(feature, label):
     clf.fit(feature,label)
     return clf.score(feature,label)
 
+def getTestAccuracy(feature_train,label_train,feature_test,label_test):
+    clf = svm.SVC()
+    clf.fit(feature_train,label_train)
+    return clf.score(feature_test,label_test)
+
 def svmPredSet1Set2Diff(df,drop_col):
     after_set_1 = df[df['after_set']==1]
     after_set_2 = df[df['after_set']==2]

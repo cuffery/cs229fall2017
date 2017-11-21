@@ -39,22 +39,25 @@ def main():
     all_train, test = train_test_split(df, test_size=0.20, random_state=666)
     train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
     
-    after_set_1 = train[train['after_set']==1]
-    after_set_2 = train[train['after_set']==2]
+    after_set_1_train = train[train['after_set']==1]
+    after_set_2_train = train[train['after_set']==2]
+    after_set_1_dev = dev[dev['after_set']==1]
+    after_set_2_dev = dev[dev['after_set']==2]
 
     #####LOGISTIC#####
     #on training only
-    #get accuracy comparison for after 1 set and after 2 set for logistic regression
-    acc1,acc2 = logistic.logPredSet1Set2Diff(train,drop_col)
-    print('train',acc1,acc2)
+    #get dev set accuracy comparison for after 1 set and after 2 set for logistic regression
+    acc = logistic.logPredSet1Set2Diff(train,dev,drop_col)
+    print('log diff',acc)
+    '''
     #get error analysis
+    training_error_analysis_after_set_1 = logistic.getTrainingErrorAnalysis(after_set_1_train,drop_col)
+    training_error_analysis_after_set_2 = logistic.getTrainingErrorAnalysis(after_set_2_train,drop_col)
 
-    error_analysis_after_set_1 = logistic.getErrorAnalysis(after_set_1,drop_col)
-    error_analysis_after_set_2 = logistic.getErrorAnalysis(after_set_2,drop_col)
-
-    #print('after set 1',error_analysis_after_set_1)
-    #print('after set 2',error_analysis_after_set_2)
-
+    #print('training error analysis after set 1',error_analysis_after_set_1)
+    #print('training error analysis after set 2',error_analysis_after_set_2)
+    '''
+    '''
     #on dev only
     #get accuracy comparison for after 1 set and after 2 set
     acc1,acc2 = logistic.logPredSet1Set2Diff(dev,drop_col)
@@ -63,9 +66,9 @@ def main():
     #####SVM#####
     acc1,acc2 = svm.svmPredSet1Set2Diff(train,drop_col)
     print(acc1,acc2)
-    error_analysis_after_set_1 = svm.getErrorAnalysis(after_set_1,drop_col)
-    error_analysis_after_set_2 = svm.getErrorAnalysis(after_set_2,drop_col)
-    
+    error_analysis_after_set_1 = svm.getErrorAnalysis(after_set_1,drop_col,'test')
+    error_analysis_after_set_2 = svm.getErrorAnalysis(after_set_2,drop_col,'test')
+    '''
     return
 
 if __name__ == '__main__':
