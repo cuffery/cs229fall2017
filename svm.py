@@ -1,19 +1,22 @@
-from sklearn.linear_model import LogisticRegression
 import pandas as pd
 import numpy as np
 import scipy
+from sklearn import svm
+import logistic
+    
+    
+def getAccuracy(feature, label):
+    clf = svm.SVC()
+    clf.fit(feature,label)
+    return clf.score(feature,label)
 
-def getAccuracy(feature,label):
-    logreg = LogisticRegression()
-    logreg.fit(feature,label)
-    return logreg.score(feature,label)
-
-def logPredSet1Set2Diff(df,drop_col):
+def svmPredSet1Set2Diff(df,drop_col):
     after_set_1 = df[df['after_set']==1]
     after_set_2 = df[df['after_set']==2]
 
     label1=after_set_1['label']
     label2=after_set_2['label']
+
     feature1 = after_set_1.drop(drop_col,axis = 1)
     feature2 = after_set_2.drop(drop_col,axis = 1)
 
@@ -38,11 +41,13 @@ def getErrorAnalysis(df,drop_col):
         ls.append(getAccuracy(feature,label))
     result = pd.DataFrame({'dropped_col': dropped,'accuracy_rate':ls})
     result['diff'] = result.accuracy_rate.diff()
+    print(result)
     return result
 
 def main():
-
+    
     return
 
+
 if __name__ == '__main__':
-	main()
+    main()
