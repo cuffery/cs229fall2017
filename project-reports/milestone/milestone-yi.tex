@@ -91,46 +91,24 @@ Tennis is an ideal candidate for using a hierarchical probability model as a mat
 
 \section{Method}
 \subsection{Feature Extraction}
-\subsubsection{Feature Representation}
 \label{sec:label}
-Each training example contains features from historical and real-time aspect.  For the scope of this project, real-time aspect will be defined as the performance in previous set, as time information is not available from our dataset:
+Our dataset denotes Player 1 as the winner and Player 2 as the loser.  Hence we represent each set in each match with two rows, one from each player's perspective.  There is one row per set per match, contains features from historical and real-time aspect.  For the scope of this project, real-time aspect will be defined as the performance in previous set:
 \begin{enumerate}
-\item A vector of input features (X), describing the historical performance of both players and performance in previous set
+\item A vector of input features (X), describing the performance in previous set and historical performance of both players
 \item A target value (y), indicating the match outcome
 \end{enumerate}
-In any given singles match, we have two players in one game. We denote them as Player 1 and Player 2, and thus define the target value as 
-$y = 1$ if Player 1 wins, 0 otherwise. In the datasets we found online, it is usually the case that Player 1 is denoted as the winner and Player 2 being the loser. In this case, we duplicated the entire dataset but swapped Player 1 and Player 2 and set $y = 0$, as well as inverted all difference features. This way, we still maintained our notation, but also made sure the model has both 1 and 0 labels to train on. 
-\subsubsection{Symmetric Match \& Set Feature Representation}
-As suggested by Sipko \cite{tennis1} and Clarke and Dyte \cite{Clarke2010}, when considering the charateristics of \textit{both} players in a given match, we are mainly interested in the \textit{difference} between two players for our variables of interest. Take for example, the rank information between two players for a given match. We construct a single feature called $RANK_DIFF = RANK_1 - RANK_2$, where $RANK_1$ and $RANK_2$ are the ranks of players 1 and 2 respectively at the time of the match. We selected this design (as opposed to the alternative of including both players' info, such as both $RANK_1$ and $RANK_2$), because previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley}, and this way we cut down the feature size by half as compared to the alternative. Reduced feature column count reduces the \textit{variance} of the model. Moreover, using difference variables allows us to have a symmetric model: it will produce the same results even if we swap Player 1 and Player 2, and define $y = 1$ if Player 2 wins, 0 otherwise. Should we have two different variables such as $RANK_1$ and $RANK_2$ for an asymmetric model, the model might assign different weights to the two variables despite them referring to the same foundamental feature, only differing by the player labelling. Having a \textit{symmetric} model eliminates the bias from that, as we only have one single difference variable for each feature now. 
-\subsubsection{Hybridizing Match \& Set Features}
+\subsubsection{Symmetric Feature Representation}
+There are two approaches to represent features from two players.  First, we can have two features for the same metric.  This approach doubles the number of features, but also provides a quantitative measure that we can compare across all players.  Second, we can represent difference between two players ($RANK_DIFF = RANK_1 - RANK_2$, as opposed to $RANK_1$ and $RANK_2$).  This would reduce the number of features, but does not allow the model to compare across players.  Previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley} for past performance (match level).  For current performance (set level), we will evaluate the performance of both approaches.  
 \textbf{TODO}
-\subsubsection{Common Opponent Model}
-We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} so as to achieve a fair comparison. Although this technique was developed for use in a hierarchical Markov model, Spiko \cite{tennis1} has shown that it adapts well in the land of machine learning algorithms and modeling. 
-
-To show how we construct the features, we first look for a set of \textbf{common opponents} between the two players of a given match. Here, \textbf{common opponents} are defined as other players that the two (Player 1 and Player 2) have faced in the past on their own. Once we have all the common opponents, we find both players' performance against the common opponent ($C_i$), and average across all the common opponents. Lastly, we find the difference between the two players' average stats against common opponents as the selected feature. Figure \ref{fig:CO} shows an example of how we could construct the \textbf{ACE} feature (difference in average ace counts) against common opponents. 
-\begin{figure}
-  \caption{Constructing the ACE feature using common opponents}
-  \centering
-    \includegraphics[width=0.8\textwidth]{CO}
-  \label{fig:CO}
-\end{figure}
-As shown in Figure \ref{fig:CO}, common opponents are labeled as $C_1, C_2, ...C_n$. For Player $i \in \{1,2\}$, $ACE_i(C_j)$ is his/her average count of aces in all matches against common opponent $C_j$. We then take an average of these values to get $ACE_i$ for Player $i$: $$ACE_i = \frac{\Sigma_{j=0}^n ACE_i(C_j)}{n}$$
-Lastly, applying the idea of difference variables, we create the feature ACE by finding the difference in performance on this feature between Player 1 and Player 2: $$ACE = ACE_1 - ACE_2$$. 
-We can apply the same technique on other features too. The limitation of this method is apparent: it only works well when players actually have common opponents have played games with them before the queried match date. Hence, we need to think about how to handle edge cases.
+\subsubsection{Common Opponent Model for Past Performance}
+We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} and extended by Spiko \cite{tennis1} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} to achieve a fair comparison. 
+This method first looks for a set of \textbf{common opponents} between the two players of a given match. Here, \textbf{common opponents} are defined as other players that the both have faced in the past on their own. Then we find both players' performance against the common opponent ($C_i$), and average across all the common opponents. Lastly, we find the difference between the two players' average stats against common opponents as the selected feature.  See B. Appendix for a detail overview of this method.
+The limitation of this method is apparent: it only works well when players actually have common opponents have played games with them before the queried match date. Hence, we need to think about how to handle edge cases.
 \subsubsection{Edge Cases}
-We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents. When (1) happens, it is necessarily the case that it suffers from (2) no common opponents as well; but the reverse is not true. \textbf{TODO}: add in what we decided to do
+We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents.  In our initial investigation, our solution is: (1) when the player is new with no historical data, we remove sample, which is X samples out of X 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponent) and take the difference.
 \subsection{Data Preparation}
 \subsubsection{Data Source}
-We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. MCP is essentially a crowdsourced shot-by-shot professional tennis dataset, and it enables us to have a real-time lens into tennis matches. 
-\subsubsection{Data Cleaning \& Transformation}
-\textbf{TODO}: Things to talk about:
-\begin{itemize}
-\item Validations run on the datasets
-\item How to detect and remove duplicates
-\item Decision on dropping Davis Cup data (because team tourney might have different strategies, hence introducing biases)
-\item How to merge two datasets together
-\item (TODO for future work) Standardize features? 
-\end{itemize}
+We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. Prediction is made based on MCP (1415 matches), where past performance for each MCP match is computed from tennis_atp (52758 matches).  Since our dataset comes from two sources, most of our milestone effort was spent on data cleaning and transformation, including detecting and removing duplicates, merge datasets based on limited information and omission of certain tournaments.  See Appendix D for more details on data cleaning.
 \subsection{Feature List}
 We present the list of extracted features in Table \ref{tab:features}. Note that all these features are difference variables unless otherwise noted. 
 \begin{center}
@@ -246,6 +224,28 @@ The use of common opponent model and difference variables already offer high pre
 \item \textbf{12/04 - 12/10}: Poster making
 \item \textbf{12/11 - 12/15}: Poster presentation; final project write-up
 \end{itemize}
+
+\section{Appendix: Common Opponent Model for Past Performance}
+Figure \ref{fig:CO} shows an example of how we could construct the \textbf{ACE} feature (difference in average ace counts) against common opponents. 
+\begin{figure}
+  \caption{Constructing the ACE feature using common opponents}
+  \centering
+    \includegraphics[width=0.8\textwidth]{CO}
+  \label{fig:CO}
+\end{figure}
+As shown in Figure \ref{fig:CO}, common opponents are labeled as $C_1, C_2, ...C_n$. For Player $i \in \{1,2\}$, $ACE_i(C_j)$ is his/her average count of aces in all matches against common opponent $C_j$. We then take an average of these values to get $ACE_i$ for Player $i$: $$ACE_i = \frac{\Sigma_{j=0}^n ACE_i(C_j)}{n}$$
+Lastly, applying the idea of difference variables, we create the feature ACE by finding the difference in performance on this feature between Player 1 and Player 2: $$ACE = ACE_1 - ACE_2$$.  We implemented this model on all features for past performance.
+
+\section{Appendix: Data Cleaning \& Transformation}
+\textbf{TODO}: Things to talk about:
+\begin{itemize}
+\item Validations run on the datasets
+\item How to detect and remove duplicates
+\item Decision on dropping Davis Cup data (because team tourney might have different strategies, hence introducing biases)
+\item How to merge two datasets together
+\item (TODO for future work) Standardize features? 
+\end{itemize}
+
 
 \bibliographystyle{plain}
 \bibliography{ref} 

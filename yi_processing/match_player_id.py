@@ -39,7 +39,7 @@ def prepareATPData():
     atp_matches['winner_lname'] = atp_matches['winner_name'].str.strip().str.split(' ').str[-1]
     atp_matches['loser_fname'] = atp_matches['loser_name'].str.strip().str.split(' ').str[0]
     atp_matches['loser_lname'] = atp_matches['loser_name'].str.strip().str.split(' ').str[-1]
-
+    print(atp_matches.shape[0])
     atp_matches['tourney_date'] = atp_matches['tourney_date'].apply(pd.to_datetime, format = '%Y%m%d')
 
     return atp_matches[['tourney_date','winner_fname','loser_fname','winner_lname','loser_lname','winner_id','loser_id']]
