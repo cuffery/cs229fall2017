@@ -40,7 +40,8 @@ def processMatchDetails(match_data):
 
     ls.extend(('player_1_fname','player_1_lname','player_2_fname','player_2_lname','player_1_finit','player_2_finit'))
 
-    #get grand slam
+    # get grand slam
+    # bug here. all grand_slam = 0. TODO: fix
     conditions = [(match_data['Tournament']== 'Wimbledon') | (match_data['Tournament']== 'Australian Open') | (match_data['Tournament']== 'Roland Garros') | (match_data['Tournament']== 'US Open') ]
     match_data['grand_slam'] = np.select(conditions,[0], default = 0)
     ls.append('grand_slam')
