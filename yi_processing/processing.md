@@ -1,3 +1,16 @@
+    \textbf{SAME\_HANDEDNESS}  & 1 for same handed, 0 for different handed \\ \hline
+    \textbf{FSP}  & First serve success percentage \\ \hline
+    \textbf{ACE}  & Sum of aces \\ \hline
+    \textbf{DF}  & Sum of double faults \\ \hline
+    \textbf{WIN}  & Number of winners \\ \hline
+    \textbf{W1SP}  & Winning on first serve percentage \\ \hline
+    \textbf{W2SP}  & Winning on second serve percentage \\ \hline
+    \textbf{RCV}  & Percentage of return points won \\ \hline
+    \textbf{TTL}  & Total points won \\ \hline
+    \textbf{SURFACE}  & Dummy variable for three types of court\\ \hline
+    \textbf{GS} & Dummy variable for if tournament is Grand Slam \\ \hline  
+
+
 Training data:
 - A table with unique match_id + set number number rows, with corresponding measurements computed from original data
 

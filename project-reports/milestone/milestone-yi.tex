@@ -108,9 +108,9 @@ The limitation of this method is apparent: it only works well when players actua
 We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents.  In our initial investigation, our solution is: (1) when the player is new with no historical data, we remove sample, which is X samples out of X 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponent) and take the difference.
 \subsection{Data Preparation}
 \subsubsection{Data Source}
-We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. Prediction is made based on MCP (1415 matches), where past performance for each MCP match is computed from tennis_atp (52758 matches).  Since our dataset comes from two sources, most of our milestone effort was spent on data cleaning and transformation, including detecting and removing duplicates, merge datasets based on limited information and omission of certain tournaments.  See Appendix D for more details on data cleaning.
+We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. Prediction is made based on MCP (1415 matches), where past performance for each MCP match is computed from \cite{tennis_atp}. Since our dataset comes from two sources, most of our milestone effort was spent on data cleaning and transformation, including detecting and removing duplicates, merge datasets based on limited information and omission of certain tournaments.  See Appendix D for more details on data cleaning.
 \subsection{Feature List}
-We present the list of extracted features in Table \ref{tab:features}. Note that all these features are difference variables unless otherwise noted. 
+We present the list of extracted features in Table \ref{tab:features}.  [TO EDDIE: FIRST TABLE IS HISTORICAL, SECOND TABLE IS CURRENT, CAN YOU MERGE THE TABLES TO SAVE SPACE? OTHERWISE MOVE THIS TO APPENDIX.  ADD A ONE LINER FOR FIRST TABLE: ALL FEATURES ARE AS DIFFERENCE]
 \begin{center}
 \begin{table}[h]
     \begin{tabular}{  l | p{10cm} }
@@ -132,10 +132,33 @@ We present the list of extracted features in Table \ref{tab:features}. Note that
     \textbf{W2SP}  & Winning on second serve percentage \\ \hline
     \textbf{SVPT}  & Average number of serve points per game \\ \hline
     \end{tabular}
-    \caption{Summary of extracted features}
+    \caption{Summary of extracted features as difference for past performance using common opponents model}
     \label{tab:features}
     \end{table}
 \end{center}
+
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | p{10cm} }
+    \hline
+    Feature  & Description \\ \hline
+    \textbf{SAME\_HANDEDNESS}  & 1 for same handed, 0 for different handed \\ \hline
+    \textbf{FSP}  & First serve success percentage \\ \hline
+    \textbf{ACE}  & Sum of aces \\ \hline
+    \textbf{DF}  & Sum of double faults \\ \hline
+    \textbf{WIN}  & Number of winners \\ \hline
+    \textbf{W1SP}  & Winning on first serve percentage \\ \hline
+    \textbf{W2SP}  & Winning on second serve percentage \\ \hline
+    \textbf{RCV}  & Percentage of return points won \\ \hline
+    \textbf{TTL}  & Total points won \\ \hline
+    \textbf{SURFACE}  & Dummy variable for three types of court\\ \hline
+    \textbf{GS} & Dummy variable for if tournament is Grand Slam \\ \hline    
+    \end{tabular}
+    \caption{Summary of extracted features for previous set performance}
+    \label{tab:features}
+    \end{table}
+\end{center}
+
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
@@ -143,43 +166,20 @@ We present the list of extracted features in Table \ref{tab:features}. Note that
 %----------------------------------------------------------------------------------------
 
 \section{Preliminary Experiments}
-As the team is still working on connecting the historical, match-level dataset with the real-time, set-level data sets, we ran some preliminary models fitting the two datasets separately instead. We use scikit-learn's implementation of the various models \cite{scikit-learn}.
+As the team is still working on connecting the historical, match-level dataset with the real-time, set-level data sets, we ran some preliminary models fitting the two datasets separately. We use scikit-learn's implementation of the various models \cite{scikit-learn}.
 \subsection{Historical, Match-level Dataset: Logistic Regression Model}
-Applying a train-test split of 2:1, we trained a logistic regression model on 2/3 of all the ATP matches from 2012. Following the labelling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features. \textbf{TODO}: might need more explanation? 
-
+Applying a train-test split of 2:1, we trained a logistic regression model on 2/3 of all the ATP matches from 2012. Following the labelling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features.
 We achieved an impressive accuracy rate of 87.8\% just using the historical, match-level dataset with common opponent model and difference variables. 
 \subsubsection{Error Analysis}
-A preliminary error analysis was done to explore the relative importance of all the extracted features, and the results are shown in Table~\ref{tab:logreg}. Interestingly, we note that \textbf{RANK\_PTS} accounts for almost $20\%$ of the performance. 
-\begin{center}
-\begin{table}[h]
-    \begin{tabular}{  l | l | l | p{5cm} }
-    \hline
-Order &     Accuracy Rate    &         Feature    &  Performance Difference \\ \hline
-0    &    0.878170 &              \textbf{SVPT}  &      \\ \hline
-1    &    0.878170 &        \textbf{SAME\_HANDEDNESS}  & 0.00\% \\ \hline
-2    &    0.666483 &          \textbf{RANK\_PTS} & -21.17\% \\ \hline
-3    &    0.657111 &              \textbf{RANK} & -0.94\% \\ \hline
-4    &    0.660419 &            \textbf{HEIGHT} & 0.33\% \\ \hline
-5    &    0.659868 &  \textbf{FSP} & -0.06\% \\ \hline
-6    &    0.665932 &       \textbf{DURATION} &  0.61\% \\ \hline
-7    &    0.661521 &                \textbf{DF} & -0.44\% \\ \hline
-8    &    0.664278 &    \textbf{BPP} &  0.28\% \\ \hline
-9    &    0.664829 &         \textbf{BP\_SAVED} &  0.06\% \\ \hline
-10   &    0.665380 &          \textbf{BP\_FACED}  & 0.06\% \\ \hline
-11   &    0.648842 &    \textbf{ACE} & -1.65\% \\ \hline
-12   &    0.661521 &             \textbf{SVGM} & 1.27\% \\ \hline
-13   &    0.659868 & \textbf{W2SP} & -0.17\% \\ \hline
-    \end{tabular}
-    \caption{Summary of extracted feature performance in the preliminary logistic regression model fitting on historical match-level data}
-    \label{tab:logreg}
-    \end{table}
-\end{center}
+A preliminary error analysis was done to explore the relative importance of all the extracted features, and the results are shown in Table~\ref{tab:logreg} in Appendix E. Interestingly, we note that \textbf{RANK\_PTS} accounts for almost $20\%$ of the performance. 
 \subsection{Historical, Match-level Dataset: Naive Bayes Classifier}
 We also ran the data through a Gaussian-based Naive Bayes classifier, which showed an impressive 86.9\% accuracy rate (misclassifying 718 points out of 5496). As expected, it was also extremely fast. The impressive performance indicates that the extracted features might indeed be conditionally independent of each other, which is something we never thought of before, and look to explore in the next steps. On a first glance, it seems to suggest that given Player $i$ won the match, his/her performance on aces and rank point difference or double faults are indeed almost independent. We were surprised by the results, and more sanity check is needed before we put ourselves behind this. 
 \subsection{Real-time, Set-level Dataset: Logistic Regression Model}
-\textbf{TODO}
+Additional analysis were done on real-time, set-level data using features listed in \textbf{Appendix[]}. [TO EDDIE: CAN YOU REPLACE THIS WITH ACTUAL TABLE] We separate our data into two groups: (1) features calculated from performance after 1st set, (2) features calculated from performance after 2nd set.  Our hypothesis is that parameters trained on the second group has higher accuracy, since more information regarding the match is known.  Our model support this hypothesis.  Accuracy on test set for (1) is 77.8\%, for (2) is 83.9\%.  The difference in accuracy between training and testing set is less than 1\%, which suggests we do not have an under-fitting problem.
+\subsubsection{Error Analysis}
+Same error analysis was done on the logistic model.  We found that the most important features are: \textbf{W2SP} and \textbf{FSP}.
 \subsection{Real-time, Set-level Dataset:  SVM}
-\textbf{TODO}
+In addition, we ran the data through a SVM model for the same comparison as logistic regression analysis.  We found that while train accuracy increased by around 1\%, test accuracy are about 10\%  lower for (1) and (2).  This suggest for SVM may be overfitting the dataset, we will need to do feature selection for SVM.
 
 %----------------------------------------------------------------------------------------
 %	Section Next Steps
@@ -246,6 +246,32 @@ Lastly, applying the idea of difference variables, we create the feature ACE by 
 \item (TODO for future work) Standardize features? 
 \end{itemize}
 
+\section{Appendix: Error Analysis Results}
+\textbf{TODO}: Things to talk about:
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | l | l | p{5cm} }
+    \hline
+Order &     Accuracy Rate    &         Feature    &  Performance Difference \\ \hline
+0    &    0.878170 &              \textbf{SVPT}  &      \\ \hline
+1    &    0.878170 &        \textbf{SAME\_HANDEDNESS}  & 0.00\% \\ \hline
+2    &    0.666483 &          \textbf{RANK\_PTS} & -21.17\% \\ \hline
+3    &    0.657111 &              \textbf{RANK} & -0.94\% \\ \hline
+4    &    0.660419 &            \textbf{HEIGHT} & 0.33\% \\ \hline
+5    &    0.659868 &  \textbf{FSP} & -0.06\% \\ \hline
+6    &    0.665932 &       \textbf{DURATION} &  0.61\% \\ \hline
+7    &    0.661521 &                \textbf{DF} & -0.44\% \\ \hline
+8    &    0.664278 &    \textbf{BPP} &  0.28\% \\ \hline
+9    &    0.664829 &         \textbf{BP\_SAVED} &  0.06\% \\ \hline
+10   &    0.665380 &          \textbf{BP\_FACED}  & 0.06\% \\ \hline
+11   &    0.648842 &    \textbf{ACE} & -1.65\% \\ \hline
+12   &    0.661521 &             \textbf{SVGM} & 1.27\% \\ \hline
+13   &    0.659868 & \textbf{W2SP} & -0.17\% \\ \hline
+    \end{tabular}
+    \caption{Summary of extracted feature performance in the preliminary logistic regression model fitting on historical match-level data}
+    \label{tab:logreg_curr}
+    \end{table}
+\end{center}
 
 \bibliographystyle{plain}
 \bibliography{ref} 

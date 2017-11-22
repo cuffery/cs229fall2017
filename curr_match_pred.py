@@ -43,7 +43,7 @@ def main():
     after_set_2_train = train[train['after_set']==2]
     after_set_1_dev = dev[dev['after_set']==1]
     after_set_2_dev = dev[dev['after_set']==2]
-    '''
+    
     #####LOGISTIC#####
     #on training only
     #get training and dev set accuracy comparison for after 1 set and after 2 set for logistic regression
@@ -51,16 +51,16 @@ def main():
     print('log diff',acc)
     
     #get error analysis
-    training_error_analysis_after_set_1 = logistic.getTrainingErrorAnalysis(after_set_1_train,drop_col)
-    training_error_analysis_after_set_2 = logistic.getTrainingErrorAnalysis(after_set_2_train,drop_col)
-    testing_error_analysis_after_set_1 = logistic.getTestingErrorAnalysis(after_set_1_train,after_set_1_dev,drop_col)
-    testing_error_analysis_after_set_2 = logistic.getTestingErrorAnalysis(after_set_2_train,after_set_2_dev,drop_col)
+    #training_error_analysis_after_set_1 = logistic.getTrainingErrorAnalysis(after_set_1_train,drop_col)
+    #training_error_analysis_after_set_2 = logistic.getTrainingErrorAnalysis(after_set_2_train,drop_col)
+    #testing_error_analysis_after_set_1 = logistic.getTestingErrorAnalysis(after_set_1_train,after_set_1_dev,drop_col)
+    #testing_error_analysis_after_set_2 = logistic.getTestingErrorAnalysis(after_set_2_train,after_set_2_dev,drop_col)
 
-    print('training error analysis after set 1',training_error_analysis_after_set_1)
-    print('training error analysis after set 2',training_error_analysis_after_set_2)
-    print('testing error analysis after set 1',testing_error_analysis_after_set_1)
-    print('testing error analysis after set 2',testing_error_analysis_after_set_2)
-    '''
+    #print('training error analysis after set 1',training_error_analysis_after_set_1)
+    #print('training error analysis after set 2',training_error_analysis_after_set_2)
+    #print('testing error analysis after set 1',testing_error_analysis_after_set_1)
+    #print('testing error analysis after set 2',testing_error_analysis_after_set_2)
+    
     #####SVM#####
     acc = svm.svmPredSet1Set2Diff(train,dev,drop_col)
     print('svm diff',acc)
