@@ -69,7 +69,7 @@
 \horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
 }
 
-\author{Yang "Eddie" Chen, Yi Zhong, Yubo Tian} % Your name
+\author{Yang "Eddie" Chen, Yubo Tian, Yi Zhong} % Your name
 
 \date{\normalsize\today} % Today's date or a custom date
 
@@ -84,7 +84,7 @@
 \section{Motivation}
 In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002.  Based on past performance alone, any model would have predicted a Federer win in pre-game bets. This motivates us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time information, similar to the model used by ESPN in-game prediction for NFL games.
 
-Tennis is an ideal candidate for using a hierarchical probability model as a match consists of a sequence of sets, which in turn consist of a sequence of games, which in turn consist of a sequence of points.  Recent researches also began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc). Utilizing existing data and building on top of existing research such as Sipko \cite{tennis1}, Clarke and Dyte \cite{Clarke2010} and Knottenbelt \cite{KNOTTENBELT20123820}, this paper seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, on-court stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, an in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
+Tennis is an ideal candidate for using a hierarchical probability model as a match consists of a sequence of sets, which in turn consist of a sequence of games, which in turn consist of a sequence of points.  Recent researchers also began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc). Utilizing existing data and building on top of existing research such as Sipko \cite{tennis1}, Clarke and Dyte \cite{Clarke2010} and Knottenbelt \cite{KNOTTENBELT20123820}, our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
 %----------------------------------------------------------------------------------------
 %	Section 2 - Method
 %----------------------------------------------------------------------------------------
@@ -92,9 +92,9 @@ Tennis is an ideal candidate for using a hierarchical probability model as a mat
 \section{Method}
 \subsection{Feature Extraction}
 \label{sec:label}
-Our dataset denotes Player 1 as the winner and Player 2 as the loser.  Hence we represent each set in each match with two rows, one from each player's perspective.  There is one row per set per match, contains features from historical and real-time aspect.  For the scope of this project, real-time aspect will be defined as the performance in previous set:
+Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; Real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
 \begin{enumerate}
-\item A vector of input features (\textbf{X}), describing the performance in previous set and historical performance of both players
+\item A vector of input features (\textbf{X}), describing the performance in previous set and historical performance from one player's perspective
 \item A target value (\textbf{y}), indicating the match outcome
 \end{enumerate}
 \subsubsection{Symmetric Feature Representation}
@@ -153,21 +153,31 @@ The use of common opponent model and difference variables already offer high pre
 %----------------------------------------------------------------------------------------
 
 \section{Contributions}
-\subsection{Yi Zhong}
-\begin{itemize}
-\item Data processing: get match details related features from MatchChartingProject, link MatchChartingProject to ATPMatches (methods: playerID, playerName etc), link match details data to current match data
-\item Initial modeling: Logistic regression + SVM with current match data (after set 1 and after set 2)
-\item Error analyses in the logistic regression and SVM models
-\end{itemize}
 
-
-\subsection{Yubo Tian}
 \subsection{Yang "Eddie" Chen}
 \begin{itemize}
 \item Researched and reviewed relevant literature for applicable ideas, such as Clarke and Dyte \cite{Clarke2010} and O'Malley \cite{omalley} for difference variable, and Knottenbelt \cite{KNOTTENBELT20123820} for the common opponent model
 \item Implemented the Common Opponent Model to look up players stats from common opponents
 \item Generated ATP Match results for labels
 \item Typsetted (\LaTeX) the project milestone report
+\end{itemize}
+
+\subsection{Yubo Tian}
+\begin{itemize}
+\item Feature extraction:  generated real-time set-level performance data from Sackmann's MCP
+\cite{tennis_charting}
+\item Data labeling: extracted match/set results from match data from Sackmann's MCP 
+\cite{tennis_charting}
+\item Data processing: Joined match-related information, historical data and real-time match data (with Yi); fixed various issues encountered during the process.
+\item Initial modeling/ Error analyses: Logistic regression on final joined data.
+\end{itemize}
+
+\subsection{Yi Zhong}
+\begin{itemize}
+\item Feature extraction: get match details related features from MatchChartingProject, 
+\item Data processing: Joined data by linking real-time match data from MCP \cite{tennis_charting} to match details data from ATPMatches \cite{tennis_atp} (methods: playerID, playerName etc) (with Yubo).
+\item Initial modeling: Logistic regression + SVM with current match data (after set 1 and after set 2)
+\item Error analyses in the logistic regression and SVM models
 \end{itemize}
 
 \section{Appendix: Project Roadmap}
@@ -194,6 +204,7 @@ Lastly, applying the idea of difference variables, we create the feature ACE by 
 \section{Appendix: Feature List}
 \label{sec:feat}
 Lists of features can be found in Table~\ref{tab:features} and Table~\ref{tab:features2}. 
+
 \begin{center}
 \begin{table}[h]
     \begin{tabular}{  l | p{10cm} }
