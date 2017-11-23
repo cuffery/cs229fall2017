@@ -51,11 +51,9 @@ def main():
     # inner join with curr_match_data
     curr_match_data = pd.read_csv('../yubo_processing/current_match_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 
-    #TODO join/ output
     joined_data = pd.merge(hist_data, curr_match_data, how="inner",on=['match_id','player'])
     joined_data.to_csv('../final_joined_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     # print(joined_data.shape) = (5224, 35)
-
     # TODO: investigate the data cleaning process. 5224 is quite low. 
 
     return
