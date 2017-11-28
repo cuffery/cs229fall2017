@@ -15,30 +15,41 @@ def joinLabelFeature(label,feature):
 
 def importData():
     # import data
-    label_ = pd.read_csv('./yubo_processing/result_per_match.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    label_ = pd.read_csv('./data_scripts/in_game_data/result_per_match.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     feature_ = pd.read_csv('./final_joined_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 
     #print(label_.shape)
     #print(feature_.shape)
     return label_, feature_
 
-def cleanDataForSklearn(d_):
-    print(list(d_))
-    print(d_.shape)
-    
-    #drop_col = 
 
-    return
+def cleanDataForSklearn(d_):
+    #print(list(d_))
+    print(d_.shape)
+
+    # TODO keep 1st_srv_pct
+    drop_col = ['match_id', 'player', 'match_winner', 'Unnamed: 0_x', 'Unnamed: 0_y', 'Unnamed: 0.1', 'Tournament', '1st_srv_pct']
+    d = d_.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    
+    print (d.shape)
+    return d
+
 
 def main():
     label_, feature_ = importData()
 
     data_ = joinLabelFeature(label_, feature_)
 
-    # remove useless data cols data_
+    # remove useless data cols from data_
     data = cleanDataForSklearn(data_)
 
-    # run models
+    #split into train set, dev set, test set
+    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
+
+    acc = logistic.logPredSet1Set2Diff(train,dev,['after_set', 'label'])
+    print('log diff',acc)
+
 
     return
 
