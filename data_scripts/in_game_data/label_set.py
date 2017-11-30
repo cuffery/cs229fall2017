@@ -6,7 +6,7 @@
 import pandas as pd
 import numpy as np
 import time
-
+import sys
 
 def findFinalSetWinner(group):
     winner = 0
@@ -41,7 +41,7 @@ def findWinner(matchData, currSet):
 
         # catch the matches that ends before first set ends (i.e. only set_score = 0-0)
         if (set_scores.shape[0] == 1):
-            print("prematurely ended match detected")
+            print("ERROR: label_set: prematurely ended match detected")
             return 1
 
         # find the current set (and the prev set)
@@ -64,7 +64,14 @@ def processData(data_):
     grouped = data.groupby('match_id')
 
     r = pd.DataFrame()
+
+    # progress bar 
+    sys.stdout.write(".%s]" % (" " * int(len(grouped) / 22)))
+    sys.stdout.flush()
+    sys.stdout.write("\b" * int(len(grouped) / 22 + 1))
+    i = 0
     for match, group in grouped:
+        i += 1
         num_sets = group.Set1.max() + group.Set2.max() + 1 # +1 for the last set
         for s in range(num_sets):
             # find winner and add an entry for each set in each game
@@ -75,19 +82,27 @@ def processData(data_):
             })
 
             r = r.append(p)
+        # progress bar
+        if ( i % 22 == 0 ):
+            sys.stdout.write(".")
+            sys.stdout.flush()
     return r
 
 
-# main()
-def main():
-    rawData = pd.read_csv('../tennis_MatchChartingProject/charting-m-points.csv', delimiter=",", quoting=3, error_bad_lines=False, encoding = "ISO-8859-1", dtype=object)
+def run(source_dir, out_filename):
+    rawData = pd.read_csv(source_dir + 'charting-m-points.csv', delimiter=",", quoting=3, error_bad_lines=False, encoding = "ISO-8859-1", dtype=object)
 
     start_time = time.time()
     result = processData(rawData)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
-    result.to_csv('result_per_set.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+    result.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1")
 
+    return
+
+# main()
+def main():
+    run('../../tennis_MatchChartingProject/', '../result_per_set.csv')
     return
 
 

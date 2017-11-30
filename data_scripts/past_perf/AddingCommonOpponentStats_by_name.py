@@ -12,6 +12,7 @@ import scipy
 import pandas as pd
 import glob
 import datetime
+import sys
 
 # util function
 def parse(t):
@@ -47,8 +48,12 @@ def readATPMatches(dirname):
 
 def readATPMatchesParseTime(dirname):
     """Reads ATP matches and parses time into datetime object"""
-    allFiles = glob.glob(dirname + "/atp_matches_" + "20??.csv")
-    allFiles = allFiles[:-1] ## avoid 2017 since its incomplete
+    allFiles = glob.glob(dirname + "atp_matches_" + "20??.csv")
+    
+    # avoid 2017 since its incomplete
+    allFiles.sort()
+    allFiles = allFiles[:-1]
+
     matches = pd.DataFrame()
     container = list()
     for filen in allFiles:
@@ -62,10 +67,6 @@ def readATPMatchesParseTime(dirname):
     matches = pd.concat(container)
     return matches
 
-## This returns a list of common opponents between p1 and p2
-# def FindCommonOpponents(p1opp, p2opp):
-
-#     return
 
 ## This calculates differential stats from common opponents
 def FindCommonOpponentStats(p1opp, p2opp):
@@ -216,13 +217,23 @@ def ComputeAvgFromCommonOpp(op1, op2):
     # print(op1,op2)
     return(np.subtract(op1, op2))
 
-# main()
-def main():
-    # atpmatches = readATPMatches("../tennis_atp")
-    atpmatches = readATPMatchesParseTime("../tennis_atp")
+def progressBar(i):
+    if (i % 100 == 0):
+        print("\n processing match_info... index = " + str(i), end ='')
+        return
+    elif (i % 10 == 0):
+        print(".", end = '')
+        return
+    else:
+        return
+
+
+# run()
+def run(source_dir, out_filename):
+    atpmatches = readATPMatchesParseTime(source_dir+'tennis_atp/')
 
     #res = pd.DataFrame()
-    match_info = pd.read_csv('../yi_processing/processed_match_details.csv',
+    match_info = pd.read_csv(source_dir+'data_scripts/match_info/match_details.csv',
                          index_col=None,
                          header=0,
                          encoding = "ISO-8859-1")
@@ -237,8 +248,13 @@ def main():
 
     results = pd.DataFrame()
     container = list()
+
+    # set up a simple progress bar since this fcn takes a while to run
+    sys.stdout.write("[%s]" % (" " * int(match_info.shape[0] / 20)))
+    sys.stdout.flush()
+    sys.stdout.write("\b" * int(match_info.shape[0]/20 + 1))
+
     for i in range(match_info.shape[0]):
-        print("processing match_info... index = ", i)
         res = pd.DataFrame(np.nan, index = range(1), columns = range(25))
 
         p1_name = match_info.p1_name[i]
@@ -279,11 +295,16 @@ def main():
 
         #container.append((p1,p2,d,res))
         results = results.append(res)
-    print('--------------- debug data ---------------')
-    print('no common opponent',no_common_opponent_count)
-    print('no historical data p1 or p2',no_match_record_count)
-    print('has common opponents',has_common_opponent_count)
-    print('--------------- debug data ---------------')
+
+        # progress bar
+        if ( i != 0 and i % 20 == 0 ):
+            sys.stdout.write(".")
+            sys.stdout.flush()
+    #print('--------------- debug data ---------------')
+    #print('no common opponent',no_common_opponent_count)
+    #print('no historical data p1 or p2',no_match_record_count)
+    #print('has common opponents',has_common_opponent_count)
+    #print('--------------- debug data ---------------')
 
     results = results.drop_duplicates(['match_id'])
     match_info = match_info.drop_duplicates(['match_id'])
@@ -291,7 +312,12 @@ def main():
     # results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
     joined_df = pd.merge(match_info,results,how="left",on=['match_id'])
     #print('joineddf',joined_df['match_id'].unique().size)
-    joined_df.to_csv('joined_hist_match.csv', sep=",",encoding = "ISO-8859-1")
+    joined_df.to_csv(out_filename, sep=",",encoding = "ISO-8859-1")
+    return
+
+
+def main():
+    run("../../", 'joined_hist_match.csv')
     return
 
 if __name__ == '__main__':

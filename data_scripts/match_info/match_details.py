@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-def importData():
-    match_data = pd.read_csv('../tennis_MatchChartingProject/charting-m-matches.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+def importData(filename):
+    match_data = pd.read_csv(filename, delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
     match_data['Date'] = pd.to_datetime(match_data['Date'])
     match_data = match_data.loc[match_data['Date'].dt.year >1999]
     match_data = match_data.loc[match_data['Date'].dt.year <2017]
@@ -48,11 +48,15 @@ def processMatchDetails(match_data):
 
     return match_data[ls]
 
-def main():
-    raw_match_data = importData()
+def run(source_dir, out_filename):
+    raw_match_data = importData(source_dir+'charting-m-matches.csv')
     processed_match_data = processMatchDetails(raw_match_data)
 
-    processed_match_data.to_csv('processed_match_details.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+    processed_match_data.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1")
+    return
+
+def main():
+    run(source_dir = '../../tennis_MatchChartingProject/', out_filename = 'match_details.csv')
     return
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ def processData(data_):
                 elif (server_pts < receiver_pts):
                     winner = group.Svr.iloc[-1] * -1 + 3
                 else:
-                    print ('unexpected match result')
+                    print ('ERROR: unexpected match result')
 
         p = pd.DataFrame({
             'match_id' : grouped.get_group(match).match_id.unique(),
@@ -44,17 +44,22 @@ def processData(data_):
         r = r.append(p)
     return r
 
+def run(source_dir, out_filename):
+    rawData = pd.read_csv(source_dir + 'charting-m-points.csv', delimiter=",", quoting=3, error_bad_lines=False, encoding = "ISO-8859-1", dtype=object)
 
-# main()
-def main():
-    rawData = pd.read_csv('../tennis_MatchChartingProject/charting-m-points.csv', delimiter=",", quoting=3, error_bad_lines=False, encoding = "ISO-8859-1", dtype=object)
+    print('[', end='') # hack for progress bar when running final_join.py, dont remove
 
     start_time = time.time()
     result = processData(rawData)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
-    result.to_csv('result_per_match.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
+    result.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1")
 
+    return
+
+# main()
+def main():
+    run('../../tennis_MatchChartingProject/','../result_per_match.csv')
     return
 
 if __name__ == '__main__':

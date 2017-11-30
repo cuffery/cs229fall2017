@@ -15,8 +15,8 @@ def joinLabelFeature(label,feature):
 
 def importData():
     # import data
-    label_ = pd.read_csv('./data_scripts/in_game_data/result_per_match.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
-    feature_ = pd.read_csv('./final_joined_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    label_ = pd.read_csv('./data_scripts/result_per_match.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    feature_ = pd.read_csv('./data_scripts/final_joined_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 
     #print(label_.shape)
     #print(feature_.shape)

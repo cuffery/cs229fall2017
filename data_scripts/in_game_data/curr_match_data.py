@@ -6,6 +6,7 @@
 import pandas as pd
 import numpy as np
 import time
+import sys
 
 def processMatch(match):
     r = pd.DataFrame();
@@ -58,11 +59,20 @@ def aggregateOnSet(data_):
    
     grouped = data.groupby('match_id')
 
+    # progress bar 
+    sys.stdout.write("[%s]" % (" " * int(len(grouped) / 22)))
+    sys.stdout.flush()
+    sys.stdout.write("\b" * int(len(grouped) / 22 + 1))
+    i = 0
     for match_id, group in grouped:
+        i+=1
         m = processMatch(grouped.get_group(match_id))
         df = df.append(m)
-    
-#    processMatch(grouped.get_group('20000130-M-Australian_Open-F-Yevgeny_Kafelnikov-Andre_Agassi'));
+
+        # progress bar
+        if ( i % 22 == 0 ):
+            sys.stdout.write(".")
+            sys.stdout.flush()
     return df
 
 
@@ -108,17 +118,22 @@ def debug(data_):
 
 
 # main()
-def main():
-    rawData = readFile('../tennis_MatchChartingProject/charting-m-stats-Overview.csv')
-    debug(rawData)
+def run(source_dir, out_filename):
+    rawData = readFile(source_dir + 'charting-m-stats-Overview.csv')
+    #debug(rawData)
     start_time = time.time()
     result = aggregateOnSet(rawData)
     
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     col = ['match_id','after_set','player','aces','dfs','unforced','1st_srv_pct','bk_pts','winners','pts_1st_srv_pct','pts_2nd_srv_pct','rcv_pts_pct','ttl_pts_won']
-    result.to_csv('current_match_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1", columns=col)
-
+    result.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1", columns=col)
     return
+
+
+def main():
+    run('../../tennis_MatchChartingProject', 'curr_match_data.csv')
+    return
+
 
 if __name__ == '__main__':
     main()
