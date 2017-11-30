@@ -66,7 +66,7 @@ def processData(data_):
     r = pd.DataFrame()
 
     # progress bar 
-    sys.stdout.write(".%s]" % (" " * int(len(grouped) / 22)))
+    sys.stdout.write("=%s]" % (" " * int(len(grouped) / 22)))
     sys.stdout.flush()
     sys.stdout.write("\b" * int(len(grouped) / 22 + 1))
     i = 0
@@ -84,7 +84,7 @@ def processData(data_):
             r = r.append(p)
         # progress bar
         if ( i % 22 == 0 ):
-            sys.stdout.write(".")
+            sys.stdout.write("=")
             sys.stdout.flush()
     return r
 

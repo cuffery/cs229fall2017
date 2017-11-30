@@ -71,7 +71,7 @@ def aggregateOnSet(data_):
 
         # progress bar
         if ( i % 22 == 0 ):
-            sys.stdout.write(".")
+            sys.stdout.write("=")
             sys.stdout.flush()
     return df
 

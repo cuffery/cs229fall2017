@@ -298,7 +298,7 @@ def run(source_dir, out_filename):
 
         # progress bar
         if ( i != 0 and i % 20 == 0 ):
-            sys.stdout.write(".")
+            sys.stdout.write("=")
             sys.stdout.flush()
     #print('--------------- debug data ---------------')
     #print('no common opponent',no_common_opponent_count)
