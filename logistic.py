@@ -1,12 +1,29 @@
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss
+
 import pandas as pd
 import numpy as np
 import scipy
 
 def getAccuracy(feature,label):
+    #old function that computes the regression
     logreg = LogisticRegression()
     logreg.fit(feature,label)
     return logreg.score(feature,label)
+
+def getAcc(model,feature,label):
+    #get accuracy from predetermined model, on new or same features/labels
+    return model.score(feature,label)
+
+def getLogModel(feature, label):
+    logreg = LogisticRegression()
+    model = logreg.fit(feature,label)
+    return model
+
+def getLogLoss(model,feature,label):
+    #get log loss from predetermined model, on new or same features/labels
+    prediction = model.predict(feature)
+    return log_loss(label, prediction)
 
 def getTestAccuracy(feature_train,label_train,feature_test,label_test):
     #train, dev = train_test_split(feature, test_size=0.25, random_state=666)
