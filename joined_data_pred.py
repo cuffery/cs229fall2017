@@ -28,7 +28,7 @@ def cleanDataForSklearn(d_):
     print(d_.shape)
 
     # TODO keep 1st_srv_pct
-    drop_col = ['match_id', 'player', 'match_winner', 'Unnamed: 0_x', 'Unnamed: 0_y', 'Unnamed: 0.1', 'Tournament', '1st_srv_pct']
+    drop_col = ['match_id', 'player', 'match_winner', 'Unnamed: 0_x', 'Unnamed: 0_y', 'Unnamed: 0.1', 'Tournament']
     d = d_.drop(drop_col,axis = 1).dropna(axis=0, how='any')
     
     print (d.shape)

@@ -16,6 +16,7 @@ def getAcc(model,feature,label):
     return model.score(feature,label)
 
 def getLogModel(feature, label):
+    #returns fitted model of logistic regression
     logreg = LogisticRegression()
     model = logreg.fit(feature,label)
     return model

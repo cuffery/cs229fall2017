@@ -10,6 +10,7 @@ def getAccuracy(feature, label):
     clf.fit(feature,label)
     return clf.score(feature,label)
 
+
 def getTestAccuracy(feature_train,label_train,feature_test,label_test):
     clf = svm.SVC()
     clf.fit(feature_train,label_train)
