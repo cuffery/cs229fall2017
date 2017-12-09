@@ -15,6 +15,7 @@ import svm
 import joined_data_pred
 
 def main():
+    #-----PREPARE DATA-----#
     label_, feature_ = joined_data_pred.importData()
 
     data_ = joined_data_pred.joinLabelFeature(label_, feature_)
@@ -29,7 +30,16 @@ def main():
     after_set_1_all_train = all_train[all_train['after_set']==1]
     after_set_2_all_train = all_train[all_train['after_set']==2]
 
-
+    #-----GRAPH FEATURE SELECTION-----#
+    df_log_set1 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_1_all_train.drop(['label'], axis=1),after_set_1_all_train['label'],'Logistic Regression After Set 1')
+    df_log_set2 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_2_all_train.drop(['label'], axis=1),after_set_2_all_train['label'],'Logistic Regression After Set 2')
+    df_linearSVC_set1 = model_selection.getRFEMeanSTD(LinearSVC(),after_set_1_all_train.drop(['label'], axis=1),after_set_1_all_train['label'],'Linear SVC After Set 1')
+    df_linearSVC_set2 = model_selection.getRFEMeanSTD(LinearSVC(),after_set_2_all_train.drop(['label'], axis=1),after_set_2_all_train['label'],'Linear SVC After Set 2')
+    
+    frames = [df_log_set1,df_log_set2,df_linearSVC_set1,df_linearSVC_set2]
+    df = pd.concat(frames, axis = 1)
+    
+    
     return
 
 if __name__ == '__main__':
