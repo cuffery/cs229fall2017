@@ -10,10 +10,6 @@ from sklearn.feature_selection import RFE
 
 '''
 This file contains all model selection related functions, including:
-- forward error analysis for a given model
-- ablative error analysis for a given model
-- k-cross validation on a given model
-- k-cross validation comparison on a set of models
 
 Inputs are:
 - Training data + dev data
@@ -47,15 +43,30 @@ def checkKSVM(feature, label):
         print("For kernel =", k, "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         #print("For c =", c, "scores",scores)
 
-def getRFE(model,feature, label,num):
+def getRFE(model,num):
     #returns the rfe and the dataframe that contains feature ranking and feature names
     #model needs to be instantiated
     #num is the number of features to select
-    rfe = RFE(model,num)
+    return RFE(model,num)
+
+def getRFERanking(rfe,feature,label):
     fit = rfe.fit(feature, label)
     feature_rank = pd.DataFrame({'label':list(feature),'Ranking':fit.ranking_,'Selected':fit.support_})
-    
-    return rfe, feature_rank
+    return feature_rank.sort_values(by = ['Ranking'])
+
+def getRFEMeanSTD(model,feature,label,desc):
+    score_mean = []
+    feature_num = []
+    score_std = []
+
+    for i in range(1,len(list(feature))):
+        rfe = getRFE(model,i)
+        scores = getCrossValScore(rfe,feature,label,5)
+        print(desc,":", "For",i,"features selected, accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        feature_num.append(i)
+        score_mean.append(scores.mean())
+        score_std.append(scores.std())
+    return pd.DataFrame({'Feature #':feature_num,'Mean Score':score_mean,'St.Dev':score_std})
 
 
 
