@@ -19,8 +19,6 @@ def processMatch(match):
         g = mset.groupby('player')
 
         for player, d in g:
-            print('for loop')
-            print(player, d)
             p = pd.DataFrame({
                 'match_id' : match.match_id.unique(),
                 'player': player,
@@ -38,6 +36,8 @@ def processMatch(match):
             })
 
             r = r.append(p)
+
+    #print(r.shape)
 
     return r
 
@@ -82,17 +82,23 @@ def processMatch_DifferenceModel(match):
 
         # now curr_set has the computed data for p1 and p2 ("player")
         # calculate difference and append 2 rows to r
-        print("\n-----------------------------------------------")
 
         relevant_cols = ['1st_srv_pct', 'aces', 'bk_pts', 'dfs', 'pts_1st_srv_pct', 
                         'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won', 'unforced', 'winners']
 
         #d2 = np.diff(curr_set[relevant_cols], axis=0)
-        print (curr_set)
-        print ("---")
-        d2 = curr_set[relevant_cols].diff()
+        d = curr_set[relevant_cols].diff().iloc[[1]]
 
-        print("-----------------------------------------------\n")
+        d2 = d
+        d1 = -1 * d2
+
+        d1['match_id'], d1['player'], d1['after_set'] = [match.match_id.unique(), 1, i]
+        r = r.append(d1)
+
+        d2['match_id'], d2['player'], d2['after_set'] = [match.match_id.unique(), 2, i]
+        r = r.append(d2)
+
+    #print(r.shape)
 
     return r
 
