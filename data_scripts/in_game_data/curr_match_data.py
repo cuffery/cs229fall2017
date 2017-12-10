@@ -8,7 +8,7 @@ import numpy as np
 import time
 import sys
 
-# globale control for using difference model or not
+# global control for using difference model or not
 G_USE_DIFF = False
 
 def processMatch(match):

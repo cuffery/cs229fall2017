@@ -13,10 +13,14 @@ def joinLabelFeature(label,feature):
     return df
 
 
-def importData():
+def importData(diff):
     # import data
     label_ = pd.read_csv('./data_scripts/result_per_match.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
-    feature_ = pd.read_csv('./data_scripts/final_joined_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+
+    if diff == False:
+        feature_ = pd.read_csv('./data_scripts/final_joined_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    else:
+        feature_ = pd.read_csv('./data_scripts/final_joined_data_diff.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 
     #print(label_.shape)
     #print(feature_.shape)

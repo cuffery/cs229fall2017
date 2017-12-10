@@ -61,6 +61,7 @@ def getRFEMeanSTD(model,feature,label,desc):
 
     for i in range(1,len(list(feature))):
         rfe = getRFE(model,i)
+        rfe = rfe.fit(feature,label)
         scores = getCrossValScore(rfe,feature,label,5)
         print(desc,":", "For",i,"features selected, accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         feature_num.append(i)
