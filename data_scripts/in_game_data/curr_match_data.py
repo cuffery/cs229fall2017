@@ -9,7 +9,7 @@ import time
 import sys
 
 # globale control for using difference model or not
-G_USE_DIFF = True
+G_USE_DIFF = False
 
 def processMatch(match):
     r = pd.DataFrame();
@@ -50,6 +50,49 @@ def processMatch_DifferenceModel(match):
     the perspective of p1 or p2, as indicated in col 'player'
     '''
     r = pd.DataFrame();
+
+    for i in range(1, int(match['set'].max())+1):
+        mset = match[match['set'] <= str(i)]
+
+        # first calculate data for p1 and p2
+        g = mset.groupby('player')
+
+        curr_set = pd.DataFrame();
+
+        for player, d in g:
+            p = pd.DataFrame({
+                'match_id' : match.match_id.unique(),
+                'player': player,
+                'after_set': i,
+                'aces': d['aces'].sum(),
+                'dfs': d['dfs'].sum(),
+                'unforced': d['unforced'].sum(),
+                '1st_srv_pct': d['first_in'].sum() / d['serve_pts'].sum(),
+                'bk_pts': d['bk_pts'].sum(),
+                'winners': d['winners'].sum(),
+                'pts_1st_srv_pct': d['first_won'].sum() / d['first_in'].sum(),
+                'pts_2nd_srv_pct': 0 if d['second_in'].sum() == 0 
+                                     else d['second_won'].sum() / d['second_in'].sum(),
+                'rcv_pts_pct': d['return_pts_won'].sum() / d['return_pts'].sum(),
+                'ttl_pts_won': (d['second_won'].sum()+d['first_won'].sum()+d['return_pts_won'].sum()) 
+                                / (d['serve_pts'].sum()+d['return_pts'].sum())
+            })
+
+            curr_set = curr_set.append(p)
+
+        # now curr_set has the computed data for p1 and p2 ("player")
+        # calculate difference and append 2 rows to r
+        print("\n-----------------------------------------------")
+
+        relevant_cols = ['1st_srv_pct', 'aces', 'bk_pts', 'dfs', 'pts_1st_srv_pct', 
+                        'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won', 'unforced', 'winners']
+
+        #d2 = np.diff(curr_set[relevant_cols], axis=0)
+        print (curr_set)
+        print ("---")
+        d2 = curr_set[relevant_cols].diff()
+
+        print("-----------------------------------------------\n")
 
     return r
 
