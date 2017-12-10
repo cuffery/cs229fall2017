@@ -7,6 +7,8 @@ from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+
 
 import logistic
 import model_selection
@@ -35,11 +37,26 @@ def main():
     df_log_set2 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_2_all_train.drop(['label'], axis=1),after_set_2_all_train['label'],'Logistic Regression After Set 2')
     df_linearSVC_set1 = model_selection.getRFEMeanSTD(LinearSVC(),after_set_1_all_train.drop(['label'], axis=1),after_set_1_all_train['label'],'Linear SVC After Set 1')
     df_linearSVC_set2 = model_selection.getRFEMeanSTD(LinearSVC(),after_set_2_all_train.drop(['label'], axis=1),after_set_2_all_train['label'],'Linear SVC After Set 2')
+
+    fig, axs = plt.subplots(ncols=2, sharex=True)
+    ax = axs[1]
+    ax.errorbar(df_log_set2['Feature #'], df_log_set2['Mean Score'], yerr=df_log_set2['St.Dev'],label = "Logistic Regression",fmt = 'o')
+    ax.errorbar(df_linearSVC_set2['Feature #'], df_linearSVC_set2['Mean Score'], yerr=df_linearSVC_set2['St.Dev'],label = "Linear SVC",fmt = 'o')
+    ax.set_ylim([0.5,1])
+    ax.legend(loc = 1)
+    ax.set_title('After set 2 data')
+
+    ax = axs[0]
+    ax.errorbar(df_log_set1['Feature #'], df_log_set1['Mean Score'], yerr=df_log_set1['St.Dev'],label = "Logistic Regression",fmt = 'o')
+    ax.errorbar(df_linearSVC_set1['Feature #'], df_linearSVC_set1['Mean Score'], yerr=df_linearSVC_set1['St.Dev'],label = "Linear SVC",fmt = 'o')
+    ax.legend(loc = 1)
+    ax.set_ylim([0.5,1])
+
+    ax.set_title('After set 1 data')
+
+    plt.savefig('Error Comparison with Feature Size for Logistic and SVC.png')
     
-    frames = [df_log_set1,df_log_set2,df_linearSVC_set1,df_linearSVC_set2]
-    df = pd.concat(frames, axis = 1)
-    
-    
+
     return
 
 if __name__ == '__main__':
