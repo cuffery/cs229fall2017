@@ -8,6 +8,9 @@ import numpy as np
 import time
 import sys
 
+# globale control for using difference model or not
+G_USE_DIFF = True
+
 def processMatch(match):
     r = pd.DataFrame();
 
@@ -16,6 +19,8 @@ def processMatch(match):
         g = mset.groupby('player')
 
         for player, d in g:
+            print('for loop')
+            print(player, d)
             p = pd.DataFrame({
                 'match_id' : match.match_id.unique(),
                 'player': player,
@@ -33,8 +38,21 @@ def processMatch(match):
             })
 
             r = r.append(p)
-    
+
     return r
+
+
+def processMatch_DifferenceModel(match):
+    '''
+    instead of calculating player1's in game data nad p2's 
+    in game data respectively, in this 'diff model', for each set
+    in each match, we calculate the diff between p1 and p2, from
+    the perspective of p1 or p2, as indicated in col 'player'
+    '''
+    r = pd.DataFrame();
+
+    return r
+
 
 # aggregateOnSet(data)
 def aggregateOnSet(data_):
@@ -66,7 +84,12 @@ def aggregateOnSet(data_):
     i = 0
     for match_id, group in grouped:
         i+=1
-        m = processMatch(grouped.get_group(match_id))
+
+        if G_USE_DIFF:
+            m = processMatch_DifferenceModel(grouped.get_group(match_id))
+        else:
+            m = processMatch(grouped.get_group(match_id))
+
         df = df.append(m)
 
         # progress bar
@@ -131,7 +154,12 @@ def run(source_dir, out_filename):
 
 
 def main():
-    run('../../tennis_MatchChartingProject', 'curr_match_data.csv')
+    if G_USE_DIFF:
+        run('../../tennis_MatchChartingProject/', 'curr_match_data_diff_model.csv')
+    else:
+        run('../../tennis_MatchChartingProject/', 'curr_match_data.csv')
+
+    print('\n')
     return
 
 
