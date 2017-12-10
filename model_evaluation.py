@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 
 
 import scipy
@@ -34,13 +35,15 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
     plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
     plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
-             label="Training score" + str(debug))
+             label="Training score" )
     plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
-             label="Cross-validation score")
+             label="Test score")
     plt.ylim([0.5,1])
+    plt.xlabel('# of training samples')
+    plt.ylabel('Accuracy')
     plt.legend(loc="best")
 
-    plt.title(filename)
+    plt.title(filename[0:-4])
     plt.savefig(filename)
 
     return
@@ -59,15 +62,15 @@ def main():
 
     after_set_1_all_train = all_train[all_train['after_set']==1]
     after_set_2_all_train = all_train[all_train['after_set']==2]
-    print(list(data))
+    #print(list(data))
 
-    y = after_set_2_all_train['label']
-    print(y.size)
-
+    y = after_set_1_all_train['label']
+    #print(y.size)
+    
     #drop_col = ['label','surface_hard', 'surface_grass', 'surface_clay']
     drop_col = ['label','after_set']
-
-    X = after_set_2_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    '''
+    X = after_set_1_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
     # [TODO: remove extra col-dropping] this is trying to speed things up a bit temporarily
     #temp_drop = ['ace_diff', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won']
@@ -103,8 +106,66 @@ def main():
     plot_learning_curve(train_sizes_lr, train_scores_lr, valid_scores_lr, 'LR_learning_curve.png', 3)
 
     #plot_learning_curve()
+    '''
+    #----GET CONFUSION MATRIX FOR BEST MODEL----#
+    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
+    curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','ttl_pts_won']
+    
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
 
+    after_set_1_train = train[train['after_set']==1]
+    after_set_2_train = train[train['after_set']==2]
 
+    after_set_1_dev = dev[dev['after_set']==1]
+    after_set_2_dev = dev[dev['after_set']==2]
+
+    #historical confusion matrix
+    svc = LinearSVC()
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = rfe.fit(train[hist],train['label'])
+    svc.fit(rfe.transform(train[hist]),train['label'])
+    pred = svc.predict(rfe.transform(dev[hist]))
+    
+    tn, fp, fn, tp = confusion_matrix(dev['label'],pred).ravel()
+    print('Historical')
+    print('tn, fp, fn, tp',(tn, fp, fn, tp))
+
+    #current only after set 1 confusion matrix
+    svc = LinearSVC()
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = rfe.fit(after_set_1_train[curr],after_set_1_train['label'])
+    svc.fit(rfe.transform(after_set_1_dev[curr]),after_set_1_dev['label'])
+    pred = svc.predict(rfe.transform(after_set_1_dev[curr]))
+    
+    tn, fp, fn, tp = confusion_matrix(after_set_1_dev['label'],pred).ravel()
+    print('Current only after set 1')
+    print('tn, fp, fn, tp',(tn, fp, fn, tp))
+
+    #current + historical only after set 1 confusion matrix
+    svc = LinearSVC()
+    X = after_set_1_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    y = after_set_1_train['label']
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = rfe.fit(X,y)
+    svc.fit(rfe.transform(X),y)
+    pred = svc.predict(rfe.transform(after_set_1_dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')))
+    
+    tn, fp, fn, tp = confusion_matrix(after_set_1_dev['label'],pred).ravel()
+    print('Current + historical after set 1')
+    print('tn, fp, fn, tp',(tn, fp, fn, tp))
+
+    #current + historical only after set 2 confusion matrix
+    svc = LinearSVC()
+    X = after_set_2_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    y = after_set_2_train['label']
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = rfe.fit(X,y)
+    svc.fit(rfe.transform(X),y)
+    pred = svc.predict(rfe.transform(after_set_2_dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')))
+    
+    tn, fp, fn, tp = confusion_matrix(after_set_2_dev['label'],pred).ravel()
+    print('Current + historical after set 2')
+    print('tn, fp, fn, tp',(tn, fp, fn, tp))
     return
 
 
