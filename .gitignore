@@ -5,6 +5,9 @@
 # .csv
 *.csv
 
+# .png
+*.png
+
 # processing doc for yizhon
 yi_pred_scratch.py
 
