@@ -4,6 +4,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
 
 import scipy
 from sklearn.model_selection import learning_curve
@@ -35,7 +37,7 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
              label="Training score" + str(debug))
     plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
              label="Cross-validation score")
-
+    plt.ylim([0.5,1])
     plt.legend(loc="best")
 
     plt.title(filename)
@@ -53,23 +55,28 @@ def main():
     # remove useless data cols from data_
     data = joined_data_pred.cleanDataForSklearn(data_)
 
+    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
+
+    after_set_1_all_train = all_train[all_train['after_set']==1]
+    after_set_2_all_train = all_train[all_train['after_set']==2]
     print(list(data))
 
-    y = data['label']
+    y = after_set_2_all_train['label']
+    print(y.size)
 
     #drop_col = ['label','surface_hard', 'surface_grass', 'surface_clay']
-    drop_col = ['label']
+    drop_col = ['label','after_set']
 
-    X = data.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    X = after_set_2_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
     # [TODO: remove extra col-dropping] this is trying to speed things up a bit temporarily
     #temp_drop = ['ace_diff', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won']
     #X = data.drop(temp_drop,axis = 1).dropna(axis=0, how='any')
 
-    rfe = model_selection.getRFE(LinearSVC(),20)
+    rfe = model_selection.getRFE(LinearSVC(),15)
     rfe = rfe.fit(X,y)
 
-    train_sizes_lin_svc, train_scores_lin_svc, valid_scores_lin_svc = learning_curve(LinearSVC(), rfe.transform(X), y, train_sizes=[1000, 2000, 3000, 4000], cv=5)
+    train_sizes_lin_svc, train_scores_lin_svc, valid_scores_lin_svc = learning_curve(LinearSVC(), rfe.transform(X), y, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
 
     print("train_sizes_lin_svc\n", train_sizes_lin_svc)
     print("train_scores_lin_svc\n", train_scores_lin_svc)
@@ -77,10 +84,10 @@ def main():
 
     plot_learning_curve(train_sizes_lin_svc, train_scores_lin_svc, valid_scores_lin_svc, 'LinearSVC_learning_curve.png', 1)
 
-    rfe = model_selection.getRFE(LinearSVC(),20)
+    rfe = model_selection.getRFE(LinearSVC(),15)
     rfe = rfe.fit(X,y)
 
-    train_sizes_svm, train_scores_svm, valid_scores_svm = learning_curve(SVC(), rfe.transform(X), y, train_sizes=[1000, 2000, 3000, 4000], cv=5)
+    train_sizes_svm, train_scores_svm, valid_scores_svm = learning_curve(SVC(), rfe.transform(X), y, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
 
     print("train_sizes_svc\n", train_sizes_svm)
     print("train_scores_svc\n", train_scores_svm)
@@ -88,7 +95,7 @@ def main():
 
     plot_learning_curve(train_sizes_svm, train_scores_svm, valid_scores_svm, 'SVM_learning_curve.png', 2)
 
-    train_sizes_lr, train_scores_lr, valid_scores_lr = learning_curve(LogisticRegression(), X, y, train_sizes=[1000, 2000, 3000, 4000], cv=5)
+    train_sizes_lr, train_scores_lr, valid_scores_lr = learning_curve(LogisticRegression(), X, y,  train_sizes=np.linspace(.1, 1.0, 5), cv=5)
 
     print("train_sizes_lr\n", train_sizes_lr)
     print("train_scores_lr\n", train_scores_lr)
