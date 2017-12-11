@@ -63,13 +63,13 @@ def prepareHistData(d_):
     # has common opponents 1269
     col = ['match_id', 'Tournament', 'surface_hard', 'surface_grass', 'surface_clay', #grand_slam TODO: enable when bug fixed
            '1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff',
-           'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff', #'duration_minutes' removed since its covered by win/loss duration
+           'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff', 'duration_minutes',
            'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', #'match_result' do we need this here?
-           'same_handedness', 'svpt_diff']
+           'same_handedness', 'svpt_diff', 'best_of']
 
     # TODO: separate_out p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won 
-    col_p1 = col + ['p1_avg_minutes_lost','p1_avg_minutes_won']
-    col_p2 = col + ['p2_avg_minutes_lost', 'p2_avg_minutes_won']
+    col_p1 = col + ['p1_avg_minutes_lost','p1_avg_minutes_won', 'p1_avg_age_lost_to', 'p1_avg_age_won_against']
+    col_p2 = col + ['p2_avg_minutes_lost', 'p2_avg_minutes_won', 'p2_avg_age_lost_to', 'p2_avg_age_won_against']
 
     d1 = d_.copy()
 
@@ -96,10 +96,14 @@ def prepareHistData(d_):
     #d1.rename({"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won"}, axis='columns')
     #d2.rename({"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won"}, axis='columns')
 
-    d1 = d1.rename(index=str, columns = {"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won"})
-    d2 = d2.rename(index=str, columns = {"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won"})
+    d1 = d1.rename(index=str, columns = {"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won",
+                                         "p1_avg_age_lost_to":"avg_age_lost_to", "p1_avg_age_won_against":"avg_age_won_against"})
+    d2 = d2.rename(index=str, columns = {"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won",
+                                         "p2_avg_age_lost_to":"avg_age_lost_to", "p2_avg_age_won_against":"avg_age_won_against"})
 
     r = pd.concat([d1, d2])
+
+    print("prepareHistData",list(r))
 
     return r
 
@@ -123,21 +127,21 @@ def main():
     print('(2/5) Generating historical common opponents data for matches. This may take a while...')
     sys.path.insert(0, './past_perf/')
     import AddingCommonOpponentStats_by_name as common_oppo_data
-    #common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
+    common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
     print ('\nDone.')
 
     # (3)
     print('(3/5) Processing real time match data...')
     sys.path.insert(0, './in_game_data/')
     import curr_match_data
-    #curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
+    curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
     print('\nDone.')
 
     # Now Process the labels
     print('(4/5) Extracting labels - result per match and result per set')
     import label_match, label_set
-    #label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
-    #label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
+    label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
+    label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
     print("\nDone. Output file: ./result_per_match.csv, ./result_per_set.csv")
 
     # Now perform the final join
@@ -151,10 +155,10 @@ def main():
     # inner join with curr_match_data
     curr_match_data = pd.read_csv('./in_game_data/curr_match_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 
-    temp = pd.read_csv('./match_info/match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
-    print('1. temp', list( temp ))
-    print('2. hist_data', list( hist_data ))
-    print('3. curr_match_data', list( curr_match_data ))
+#    temp = pd.read_csv('./match_info/match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+#    print('1. temp', list( temp ))
+#    print('2. hist_data', list( hist_data ))
+#    print('3. curr_match_data', list( curr_match_data ))
 
 
     joined_data = pd.merge(hist_data, curr_match_data, how="inner",on=['match_id','player'])
