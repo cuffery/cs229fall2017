@@ -46,6 +46,9 @@ def processMatchDetails(match_data):
     match_data['grand_slam'] = np.select(conditions,[0], default = 0)
     ls.append('grand_slam')
 
+    match_data['best_of'] = match_data['Best of']
+    ls.append('best_of')
+
     return match_data[ls]
 
 def run(source_dir, out_filename):

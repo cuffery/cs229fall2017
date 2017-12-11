@@ -1,0 +1,246 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{graphicx}
+\usepackage[margin=0.8in]{geometry} % this controls page margin
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+%\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\usepackage{sectsty} % Allows customizing section commands
+%\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+%\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Stanford CS 229 Fall 2017} \\ [20pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\Large Final Project Report: \\
+\Large Real Time Tennis Match Prediction Using Machine Learning\\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\author{Yang "Eddie" Chen, Yubo Tian, Yi Zhong} % Your name
+
+\date{\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+\twocolumn[
+\maketitle % Print the title
+]
+%----------------------------------------------------------------------------------------
+%	Section 1 Motivation
+%----------------------------------------------------------------------------------------
+\begin{abstract}
+Our abstract goes here...
+\end{abstract}
+
+\section{Introduction}
+In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002.  Based on past performance alone, any model would have predicted a Federer win in pre-game bets. This motivates us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time information.
+%----------------------------------------------------------------------------------------
+%	Section - Method
+%----------------------------------------------------------------------------------------
+
+\section{Related Work}
+Research has been done on tennis as it is an ideal candidate for using a hierarchical probability model as a match consists of a sequence of sets, which in turn consist of a sequence of games, which in turn consist of a sequence of points.  Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc). Utilizing existing data and building on top of existing research such as Sipko \cite{tennis1}, Clarke and Dyte \cite{Clarke2010} and Knottenbelt \cite{KNOTTENBELT20123820}, our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
+%----------------------------------------------------------------------------------------
+%	Section - Method
+%----------------------------------------------------------------------------------------
+
+\section{Dataset and Features}
+\subsection{Dataset}
+We are using two datasets, \cite{tennis_atp} and \cite{tennis_charting}.  Both datasets are crowdsourced GitHub repository maintained by Jeff Sackmann.  The Match Charting Project contains set level data from 1442 matches, spanning from 1974 to 2017.  Tennis ATP contains match level data from 1969 to 2017.
+\begin{itemize}
+\item \textbf{Filtering}: Data before 2000 are dropped from both datasets.  Data in 2017 are also dropped because the data contain many missing fields for the recent matches.  Data between 2000-2016 are used for historical match level data.  Historical match level data have around 14000 matches, and our prediction is done on current set level data with 1415 matches.
+\item \textbf{Remove duplicates}: Since both datasets are manually entered via crowdsourcing, there are some inaccuracy and duplication.  All duplicate matches are removed via \textbf{match id}.
+\item \textbf{Davis Cup}: Davis Cup is the World Cup for tennis, where players play for their country.  We decided to remove all Davis Cup entry, since group matches may include strategic move that is different from individual tournaments.
+\item \textbf{Merge Tennis ATP and Match Charting Project}: For each of our training sample, we want to include historical performance for both players using the common opponent model, which means we need to compute the average from Tennis ATP with an identifier.  Unfortunately, although both repos are maintained by the same owner, the two datasets do not have a common ID.  This turned out to be a non-trivial process.  Our final solution is matching using the player's first name and last name, and we would manually drop all players with same names.
+\item \textbf{Feature Standardization} We are unable to extract all features listed in Sipko \cite{tennis1}.  We can extract some features from Tennis ATP but not Match Charting Project.  We will attempt to extract more features from processing the point by point data in Match Charting Project, and standardize between the historical and current performance.
+\end{itemize}
+\subsection{Features}
+\label{sec:feat}
+We present the list of extracted features in Table \ref{tab:features} for the match-level data, and Table \ref{tab:features2} for the set-level data.  All features are difference variables unless otherwise noted. 
+
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | p{4cm} }
+    \hline
+    Feature  & Description \\ \hline
+    \textbf{DURATION}  & Match duration in minutes (\textit{not difference}) \\ \hline
+    \textbf{SAME\_HANDEDNESS}  & Tracking, on average, the frequency of facing opponents who have the same dominant hand \\ \hline
+    \textbf{RANK}  & ATP rank \\ \hline
+    \textbf{RANK\_PTS}  & ATP rank points \\ \hline
+    \textbf{HEIGHT}  & Player height \\ \hline
+    \textbf{FSP}  & First serve success percentage \\ \hline
+    \textbf{ACE}  & Average number of aces per game \\ \hline
+    \textbf{DF}  & Average number of double faults per game \\ \hline
+    \textbf{BP\_FACED}  & Average number of break points faced per game \\ \hline
+    \textbf{BP\_SAVED}  & Average number of break points saved per game \\ \hline
+    \textbf{BPP}  & Break point saving percentage \\ \hline
+    \textbf{SVGM}  & Average number of serve games \\ \hline
+    \textbf{W1SP}  & Winning on first serve percentage \\ \hline
+    \textbf{W2SP}  & Winning on second serve percentage \\ \hline
+    \textbf{SVPT}  & Average number of serve points per game \\ \hline
+    \end{tabular}
+    \caption{Summary of extracted features as difference for past performance using common opponents model}
+    \label{tab:features}
+    \end{table}
+\end{center}
+
+\begin{center}
+\begin{table}[h]
+    \begin{tabular}{  l | p{3cm} }
+    \hline
+    Feature  & Description \\ \hline
+    \textbf{SAME\_HANDEDNESS}  & 1 for same handed, 0 for different handed \\ \hline
+    \textbf{FSP}  & First serve success percentage \\ \hline
+    \textbf{ACE}  & Sum of aces \\ \hline
+    \textbf{DF}  & Sum of double faults \\ \hline
+    \textbf{WIN}  & Number of winners \\ \hline
+    \textbf{W1SP}  & Winning on first serve percentage \\ \hline
+    \textbf{W2SP}  & Winning on second serve percentage \\ \hline
+    \textbf{RCV}  & Percentage of return points won \\ \hline
+    \textbf{TTL}  & Total points won \\ \hline
+    \textbf{SURFACE}  & Dummy variable for three types of court\\ \hline
+    \textbf{GS} & Dummy variable for if tournament is Grand Slam \\ \hline    
+    \end{tabular}
+    \caption{Summary of extracted features for previous set performance}
+    \label{tab:features2}
+    \end{table}
+\end{center}
+\subsection{Feature Extraction}
+\label{sec:label}
+Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; Real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
+\begin{enumerate}
+\item A vector of input features (\textbf{X}), describing the performance in previous set and historical performance from one player's perspective
+\item A target value (\textbf{y}), indicating the match outcome
+\end{enumerate}
+\subsubsection{Symmetric Feature Representation}
+There are two approaches to represent features from two players.  First, we can have two features for the same metric.  This approach doubles the number of features, but also provides a quantitative measure that we can compare across all players.  Second, we can represent difference between two players ($RANK_{DIFF} = RANK_1 - RANK_2$, as opposed to $RANK_1$ and $RANK_2$).  This would reduce the number of features, but does not allow the model to compare across players.  Previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley} for past performance (match level).  For current performance (set level), we will evaluate the performance of both approaches.  
+\subsubsection{Common Opponent Model for Past Performance}
+We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} and extended by Sipko \cite{tennis1} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} to achieve a fair comparison. 
+This method first looks for a set of \textbf{common opponents} between the two players of a given match. Here, \textbf{common opponents} are defined as other players that the both have faced in the past on their own. Then we find both players' performance against the common opponent ($C_i$), and average across all the common opponents. Lastly, we find the difference between the two players' average stats against common opponents as the selected feature.  See Appendix for a detail overview of this method.
+The limitation of this method is apparent: it only works well when players actually have common opponents have played games with them before the queried match date. Hence, we need to think about how to handle edge cases.
+\subsubsection{Edge Cases}
+We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents.  In our initial investigation, our solution is: (1) when the player is new with no historical data, we remove the samples, which is 84 samples out of 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponent) and take the difference, which is 74 out of 1421 matches. Note, as described in 2.1.Feature Extraction section, our final sample size will contain 2x * 1421 rows, where x is the number of sets played in each match.
+%----------------------------------------------------------------------------------------
+%	Section - Method
+%----------------------------------------------------------------------------------------
+
+\section{Method}
+Describe your learning algorithms, proposed algorithm(s), or theoretical proof(s). Make sure to include relevant mathematical notation. For example, you can briefly include the SVM optimization objective/formula or say what the softmax function is. It is okay to use formulas from the lecture notes. For each algorithm, give a short description (about 1 paragraph) of how it works. Again, we are looking for your understanding of how these machine learning algorithms work. 
+
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	Section Preliminary Experiments
+%----------------------------------------------------------------------------------------
+
+\section{Experiments, Results, Discussion}
+As the team is still working on connecting the historical, match-level dataset with the real-time, set-level data sets, we ran some preliminary models fitting the two datasets separately. We use scikit-learn's implementation of the various models \cite{scikit-learn}.
+\subsection{Historical, Match-level Dataset: Logistic Regression Model}
+Applying a train-test split of 2:1, we trained a logistic regression model on $\frac{2}{3}$ of all the ATP matches from 2012. Following the labeling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features.
+
+We achieved an impressive accuracy rate of 87.8\% just using the historical, match-level dataset with common opponent model and difference variables. 
+
+\subsection{Historical, Match-level Dataset: Naive Bayes Classifier}
+We also ran the data through a Gaussian-based Naive Bayes classifier, which showed an impressive 86.9\% accuracy rate (misclassifying 718 points out of 5496). As expected, it was also extremely fast. The impressive performance indicates that the extracted features might indeed be conditionally independent of each other, which is something we never thought of before, and look to explore in the next steps. On a first glance, it seems to suggest that given Player $i$ won the match, his/her performance on aces and rank point difference or double faults are indeed almost independent. We were surprised by the results, and more sanity check is needed before we put ourselves behind this. 
+\subsection{Real-time, Set-level Dataset: Logistic Regression Model}
+Additional analysis were done on real-time, set-level data using features listed in Table~\ref{tab:features2}. We separate our data into two groups: (1) features calculated from performance after 1st set, (2) features calculated from performance after 2nd set.  Our hypothesis is that parameters trained on the second group has higher accuracy, since more information regarding the match is known.  Our model support this hypothesis.  Accuracy on test set for (1) is 77.8\%, for (2) is 83.9\%.  The difference in accuracy between training and testing set is less than 1\%, which suggests we do not have an under-fitting problem.
+\subsubsection{Error Analysis}
+Same error analysis was done on the logistic model.  We found that the most important features are: \textbf{W2SP} and \textbf{FSP}.
+\subsection{Real-time, Set-level Dataset:  SVM}
+In addition, we ran the data through a SVM model for the same comparison as logistic regression analysis.  We found that while train accuracy increased by around 1\%, test accuracy are about 10\%  lower for (1) and (2).  This suggest for SVM may be overfitting the dataset, we will need to do \textbf{feature selection} for SVM.
+
+%----------------------------------------------------------------------------------------
+%	Conclusion
+%----------------------------------------------------------------------------------------
+\section{Conclusion, Future Work}
+The use of common opponent model and difference variables already offer high predictive power in simple machine learning models such as logistic regression and Naive Bayes, and it's exciting to see with fine-tuning and more exploration and connecting datasets what we can achieve. It's also helpful to learn that ATP rank point difference between two players alone is already predictive of their likely match outcome. 
+
+%----------------------------------------------------------------------------------------
+%	Section Contributions
+%----------------------------------------------------------------------------------------
+\section{Appendix}
+Real appendix goes here, takes page count
+
+\section{Contributions}
+\subsection{Yang "Eddie" Chen}
+\begin{itemize}
+\item Researched and reviewed relevant literature for applicable ideas, such as Clarke and Dyte \cite{Clarke2010} and O'Malley \cite{omalley} for difference variable, and Knottenbelt \cite{KNOTTENBELT20123820} for the common opponent model
+\item Implemented the Common Opponent Model to look up players stats from common opponents
+\item Generated ATP Match results for labels
+\item Typsetted (\LaTeX) the project milestone report
+\end{itemize}
+
+\subsection{Yubo Tian}
+\begin{itemize}
+\item Feature extraction:  generated real-time set-level performance data from Sackmann's MCP
+\cite{tennis_charting}
+\item Data labeling: extracted match/set results from match data from Sackmann's MCP 
+\cite{tennis_charting}
+\item Data processing: Joined match-related information, historical data and real-time match data (with Yi); fixed various issues encountered during the process.
+\item Initial modeling/ Error analyses: Logistic regression on final joined data.
+\end{itemize}
+
+\subsection{Yi Zhong}
+\begin{itemize}
+\item Feature extraction: get match details related features from MatchChartingProject, 
+\item Data processing: Joined data by linking real-time match data from MCP \cite{tennis_charting} to match details data from ATPMatches \cite{tennis_atp} (methods: playerID, playerName etc) (with Yubo).
+\item Initial modeling: Logistic regression + SVM with current match data (after set 1 and after set 2)
+\item Error analyses in the logistic regression and SVM models
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{ref} 
+
+\end{document}
