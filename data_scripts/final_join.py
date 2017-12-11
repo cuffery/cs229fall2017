@@ -63,19 +63,25 @@ def prepareHistData(d_):
     # has common opponents 1269
     col = ['match_id', 'Tournament', 'surface_hard', 'surface_grass', 'surface_clay', #grand_slam TODO: enable when bug fixed
            '1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff',
-           'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff',
+           'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff', #'duration_minutes' removed since its covered by win/loss duration
            'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', #'match_result' do we need this here?
            'same_handedness', 'svpt_diff']
 
     # TODO: separate_out p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won 
+    col_p1 = col + ['p1_avg_minutes_lost','p1_avg_minutes_won']
+    col_p2 = col + ['p2_avg_minutes_lost', 'p2_avg_minutes_won']
 
-    d = d_[col].dropna(axis=0, how='any')
+    d1 = d_.copy()
+
+    d1 = d1[col_p1].dropna(axis=0, how='any')
     #print(d.shape) # (1012, 22), i.e. 414 rows are dropped. we only expect 84 rows to be dropped.
     # TODO: eddie/yi: investigate and fix the unexpected NAN s in joined_hist_match.csv
     # to see dropped rows: r = d_[col][d_[col].isnull().any(axis=1)]
 
     # make a copy of the data, negate the common oppo stats, and set player to 2
-    d2 = d.copy()
+    d2 = d_.copy()
+    d2 = d2[col_p2].dropna(axis=0, how='any')
+
     # TODO: verify correctness of the cols:
     common_oppo_stats =['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff',
             'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff',
@@ -84,10 +90,17 @@ def prepareHistData(d_):
     d2[common_oppo_stats] = d2[common_oppo_stats] * -1
 
     # set player in d to 1 (because common opp data are from p1's perspective), in d2 to 2
-    d['player'] = 1
+    d1['player'] = 1
     d2['player'] = 2
 
-    r = pd.concat([d, d2])
+    #d1.rename({"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won"}, axis='columns')
+    #d2.rename({"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won"}, axis='columns')
+
+    d1 = d1.rename(index=str, columns = {"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won"})
+    d2 = d2.rename(index=str, columns = {"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won"})
+
+    r = pd.concat([d1, d2])
+
     return r
 
 def main():
