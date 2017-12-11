@@ -48,26 +48,18 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
 
     return
 
-def get_learning_curve_plots(diff):    
-    #read data with diff model
-    label_, feature_ = joined_data_pred.importData(diff)
-    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
+def get_learning_curve_plots(data_split,num_features):    
+    after_set_1_all_train = data_split['after_set_1_all_train']
+    after_set_2_all_train = data_split['after_set_2_all_train']
 
-    # remove useless data cols from data_
-    data = joined_data_pred.cleanDataForSklearn(data_)
+    all_train = data_split['all_train']
+    test = data_split['test']
 
-    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
-
-    after_set_1_all_train = all_train[all_train['after_set']==1]
-    after_set_2_all_train = all_train[all_train['after_set']==2]
-
+    drop_col = ['label']
     y = after_set_1_all_train['label']
-    
-    drop_col = ['label','after_set']
-    
     X = after_set_1_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = model_selection.getRFE(LinearSVC(),num_features)
     rfe = rfe.fit(X,y)
 
     train_sizes_lin_svc, train_scores_lin_svc, valid_scores_lin_svc = learning_curve(LinearSVC(), rfe.transform(X), y, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
@@ -78,7 +70,7 @@ def get_learning_curve_plots(diff):
 
     plot_learning_curve(train_sizes_lin_svc, train_scores_lin_svc, valid_scores_lin_svc, 'LinearSVC_learning_curve.png', 1)
 
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = model_selection.getRFE(LinearSVC(),num_features)
     rfe = rfe.fit(X,y)
 
     train_sizes_svm, train_scores_svm, valid_scores_svm = learning_curve(SVC(), rfe.transform(X), y, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
@@ -97,34 +89,27 @@ def get_learning_curve_plots(diff):
     plot_learning_curve(train_sizes_lr, train_scores_lr, valid_scores_lr, 'LR_learning_curve.png', 3)
     return
 
-def getConfusionMatrix(diff):
-    #----GET CONFUSION MATRIX FOR BEST MODEL----#
-    #read data with diff model
-    label_, feature_ = joined_data_pred.importData(diff)
-    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
-    drop_col = ['label','after_set']
+def getConfusionMatrix(data_split,num_features, model):
+    after_set_1_train= data_split['after_set_1_train']
+    after_set_2_train = data_split['after_set_2_train']
+    after_set_1_all_train = data_split['after_set_1_all_train']
+    after_set_2_all_train = data_split['after_set_2_all_train']
+    after_set_1_dev = data_split['after_set_1_dev']
+    after_set_2_dev = data_split['after_set_2_dev']
 
-    # remove useless data cols from data_
-    data = joined_data_pred.cleanDataForSklearn(data_)
-
-    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
-
-    after_set_1_all_train = all_train[all_train['after_set']==1]
-    after_set_2_all_train = all_train[all_train['after_set']==2]
+    all_train = data_split['all_train']
+    test = data_split['test']
+ 
+    train = data_split['train']
+    dev = data_split['dev']
+    drop_col = ['label']
 
     hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
     curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','ttl_pts_won']
 
-    after_set_1_train = train[train['after_set']==1]
-    after_set_2_train = train[train['after_set']==2]
-
-    after_set_1_dev = dev[dev['after_set']==1]
-    after_set_2_dev = dev[dev['after_set']==2]
-
     #historical confusion matrix
-    svc = LinearSVC()
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    svc = model
+    rfe = model_selection.getRFE(model,num_features)
     rfe = rfe.fit(train[hist],train['label'])
     svc.fit(rfe.transform(train[hist]),train['label'])
     pred = svc.predict(rfe.transform(dev[hist]))
@@ -134,8 +119,8 @@ def getConfusionMatrix(diff):
     print('tn, fp, fn, tp',(tn, fp, fn, tp))
 
     #current only after set 1 confusion matrix
-    svc = LinearSVC()
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    svc = model
+    rfe = model_selection.getRFE(model,num_features)
     rfe = rfe.fit(after_set_1_train[curr],after_set_1_train['label'])
     svc.fit(rfe.transform(after_set_1_dev[curr]),after_set_1_dev['label'])
     pred = svc.predict(rfe.transform(after_set_1_dev[curr]))
@@ -145,10 +130,10 @@ def getConfusionMatrix(diff):
     print('tn, fp, fn, tp',(tn, fp, fn, tp))
 
     #current + historical only after set 1 confusion matrix
-    svc = LinearSVC()
+    svc = model
     X = after_set_1_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
     y = after_set_1_train['label']
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = model_selection.getRFE(model,num_features)
     rfe = rfe.fit(X,y)
     svc.fit(rfe.transform(X),y)
     pred = svc.predict(rfe.transform(after_set_1_dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')))
@@ -158,10 +143,10 @@ def getConfusionMatrix(diff):
     print('tn, fp, fn, tp',(tn, fp, fn, tp))
 
     #current + historical only after set 2 confusion matrix
-    svc = LinearSVC()
+    svc = model
     X = after_set_2_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
     y = after_set_2_train['label']
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = model_selection.getRFE(model,15)
     rfe = rfe.fit(X,y)
     svc.fit(rfe.transform(X),y)
     pred = svc.predict(rfe.transform(after_set_2_dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')))
@@ -169,10 +154,73 @@ def getConfusionMatrix(diff):
     tn, fp, fn, tp = confusion_matrix(after_set_2_dev['label'],pred).ravel()
     print('Current + historical after set 2')
     print('tn, fp, fn, tp',(tn, fp, fn, tp))
+    return
+
+def outputRanking(model,feature, label,filename):
+    rfe = model_selection.getRFE(model,1)
+    ranking = model_selection.getRFERanking(rfe,feature, label)
+    ranking.to_csv(filename)
+    print('-----',filename,'-----')
+    print(ranking)
+    return ranking
+
+def getData(diff):
+    #read data with diff model
+    label_, feature_ = joined_data_pred.importData(diff)
+    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
+    drop_col = ['after_set']
+
+    data = joined_data_pred.cleanDataForSklearn(data_)
+
+    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
+
+    after_set_1_all_train = all_train[all_train['after_set']==1].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    after_set_2_all_train = all_train[all_train['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+
+    after_set_1_train = train[train['after_set']==1].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    after_set_2_train = train[train['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+
+    after_set_1_dev = dev[dev['after_set']==1].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    after_set_2_dev = dev[dev['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
+
+    all_train = all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    test = test.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    train = train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    dev = dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+
+    data_split = {}
+    data_split['after_set_1_train'] =  after_set_1_train
+    data_split['after_set_2_train'] =  after_set_2_train
+    data_split['after_set_1_all_train'] =  after_set_1_all_train
+    data_split['after_set_2_all_train'] =  after_set_2_all_train
+    data_split['after_set_1_dev'] =  after_set_1_dev
+    data_split['after_set_2_dev'] =  after_set_2_dev
+
+    data_split['all_train'] =  all_train
+    data_split['test'] =  test
+ 
+    data_split['train'] =  train
+    data_split['dev'] =  dev
+    return data_split
 
 def main():
-    get_learning_curve_plots(diff = True)
-    getConfusionMatrix(diff = True)
+    data_split = getData(diff = True)
+    #----GET CONFUSION MATRIX FOR BEST MODEL----#
+    getConfusionMatrix(data_split,num_features = 15,model = LinearSVC())
+    
+    #----GET FEATURE RANKING FOR DIFFERENT DATA MODEL----#
+    #Return feature ranking for different data 
+    #after set 1 with logistic regression
+    outputRanking(LogisticRegression(),data_split['after_set_1_all_train'].drop(['label'], axis=1),data_split['after_set_1_all_train']['label'],'log_after_set1_ranking_diff.csv')
+    #after set 1 with svc
+    outputRanking(LinearSVC(),data_split['after_set_1_all_train'].drop(['label'], axis=1),data_split['after_set_1_all_train']['label'],'svc_after_set1_ranking_diff.csv')
+    #after set 2 with logistic
+    outputRanking(LogisticRegression(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'log_after_set2_ranking_diff.csv')
+    #after set 2 with svc
+    outputRanking(LinearSVC(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'svc_after_set2_ranking_diff.csv')
+
+
 
     return
 

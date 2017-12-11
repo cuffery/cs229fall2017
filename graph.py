@@ -19,23 +19,17 @@ import joined_data_pred
 
 def main():
     #-----PREPARE DATA FOR PLAYER DATA-----#
-    label_, feature_ = joined_data_pred.importData(diff = False)
+    data_split = model_evaluation.getData(diff = False)
 
-    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
+    after_set_1_train= data_split['after_set_1_train']
+    after_set_2_train = data_split['after_set_2_train']
+    after_set_1_all_train = data_split['after_set_1_all_train']
+    after_set_2_all_train = data_split['after_set_2_all_train']
+    after_set_1_dev = data_split['after_set_1_dev']
+    after_set_2_dev = data_split['after_set_2_dev']
 
-    # remove useless data cols from data_
-    data = joined_data_pred.cleanDataForSklearn(data_)
-
-    #split into train set, dev set, test set
-    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
-
-    after_set_1_all_train = all_train[all_train['after_set']==1]
-    after_set_2_all_train = all_train[all_train['after_set']==2]
-
-    
-    after_set_1_all_train = after_set_1_all_train.drop(['after_set'], axis=1)
-    after_set_2_all_train = after_set_2_all_train.drop(['after_set'], axis=1)
+    all_train = data_split['all_train']
+    test = data_split['test']
 
     #-----GRAPH FEATURE SELECTION-----#
     df_log_set1 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_1_all_train.drop(['label'], axis=1),after_set_1_all_train['label'],'Logistic Regression After Set 1')
@@ -64,24 +58,22 @@ def main():
     
     
     #-----PREPARE DATA FOR DIFF DATA-----#
-    label_, feature_ = joined_data_pred.importData(diff = True)
+    data_split = model_evaluation.getData(diff = True)
 
-    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
+    after_set_1_train= data_split['after_set_1_train']
+    after_set_2_train = data_split['after_set_2_train']
+    after_set_1_all_train = data_split['after_set_1_all_train']
+    after_set_2_all_train = data_split['after_set_2_all_train']
+    after_set_1_dev = data_split['after_set_1_dev']
+    after_set_2_dev = data_split['after_set_2_dev']
 
-    # remove useless data cols from data_
-    data = joined_data_pred.cleanDataForSklearn(data_)
+    all_train = data_split['all_train']
+    test = data_split['test']
+ 
+    train = data_split['train']
+    dev = data_split['dev']
+    drop_col = ['label']
 
-    #split into train set, dev set, test set
-    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
-
-    after_set_1_all_train = all_train[all_train['after_set']==1]
-    after_set_2_all_train = all_train[all_train['after_set']==2]
-
-    
-    after_set_1_all_train = after_set_1_all_train.drop(['after_set'], axis=1)
-    after_set_2_all_train = after_set_2_all_train.drop(['after_set'], axis=1)
-    
     #-----GRAPH FEATURE SELECTION-----#
     df_log_set1 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_1_all_train.drop(['label'], axis=1),after_set_1_all_train['label'],'Logistic Regression After Set 1')
     df_log_set2 = model_selection.getRFEMeanSTD(LogisticRegression(),after_set_2_all_train.drop(['label'], axis=1),after_set_2_all_train['label'],'Logistic Regression After Set 2')
@@ -144,7 +136,6 @@ def main():
     
     #-----GRAPH LEARNING CURVE----#
     model_evaluation.get_learning_curve_plots(diff = True)
-    
 
     return
 
