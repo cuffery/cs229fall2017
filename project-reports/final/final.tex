@@ -108,7 +108,7 @@ We are using two datasets, \cite{tennis_atp} and \cite{tennis_charting}.  Both d
 \end{itemize}
 \subsection{Features}
 \label{sec:feat}
-Lists of features can be found in Table~\ref{tab:features} and Table~\ref{tab:features2}. 
+We present the list of extracted features in Table \ref{tab:features} for the match-level data, and Table \ref{tab:features2} for the set-level data.  All features are difference variables unless otherwise noted. 
 
 \begin{center}
 \begin{table}[h]
@@ -138,7 +138,7 @@ Lists of features can be found in Table~\ref{tab:features} and Table~\ref{tab:fe
 
 \begin{center}
 \begin{table}[h]
-    \begin{tabular}{  l | p{3.3cm} }
+    \begin{tabular}{  l | p{3cm} }
     \hline
     Feature  & Description \\ \hline
     \textbf{SAME\_HANDEDNESS}  & 1 for same handed, 0 for different handed \\ \hline
@@ -157,11 +157,6 @@ Lists of features can be found in Table~\ref{tab:features} and Table~\ref{tab:fe
     \label{tab:features2}
     \end{table}
 \end{center}
-%----------------------------------------------------------------------------------------
-%	Section - Method
-%----------------------------------------------------------------------------------------
-
-\section{Method}
 \subsection{Feature Extraction}
 \label{sec:label}
 Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; Real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
@@ -177,11 +172,12 @@ This method first looks for a set of \textbf{common opponents} between the two p
 The limitation of this method is apparent: it only works well when players actually have common opponents have played games with them before the queried match date. Hence, we need to think about how to handle edge cases.
 \subsubsection{Edge Cases}
 We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents.  In our initial investigation, our solution is: (1) when the player is new with no historical data, we remove the samples, which is 84 samples out of 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponent) and take the difference, which is 74 out of 1421 matches. Note, as described in 2.1.Feature Extraction section, our final sample size will contain 2x * 1421 rows, where x is the number of sets played in each match.
-\subsection{Data Preparation}
-\subsubsection{Data Source}
-We obtain match-level data from Jeff Sackmann's Github repositories \cite{tennis_atp} \cite{tennis_charting}, with the Match Charting Project (MCP) providing set-level stats and results as well \cite{tennis_charting}. Prediction is made based on MCP (1415 matches), where past performance for each MCP match is computed from \cite{tennis_atp}. Since our dataset comes from two sources, most of our milestone effort was spent on data cleaning and transformation, including detecting and removing duplicates, merge datasets based on limited information and omission of certain tournaments.  See Appendix for more details on data cleaning.
-\subsection{Feature List}
-We present the list of extracted features in Table \ref{tab:features} for the match-level data, and Table \ref{tab:features2} for the set-level data.  All features are difference variables unless otherwise noted. 
+%----------------------------------------------------------------------------------------
+%	Section - Method
+%----------------------------------------------------------------------------------------
+
+\section{Method}
+Describe your learning algorithms, proposed algorithm(s), or theoretical proof(s). Make sure to include relevant mathematical notation. For example, you can briefly include the SVM optimization objective/formula or say what the softmax function is. It is okay to use formulas from the lecture notes. For each algorithm, give a short description (about 1 paragraph) of how it works. Again, we are looking for your understanding of how these machine learning algorithms work. 
 
 %----------------------------------------------------------------------------------------
 
@@ -189,14 +185,13 @@ We present the list of extracted features in Table \ref{tab:features} for the ma
 %	Section Preliminary Experiments
 %----------------------------------------------------------------------------------------
 
-\section{Preliminary Experiments, Results, Discussion}
+\section{Experiments, Results, Discussion}
 As the team is still working on connecting the historical, match-level dataset with the real-time, set-level data sets, we ran some preliminary models fitting the two datasets separately. We use scikit-learn's implementation of the various models \cite{scikit-learn}.
 \subsection{Historical, Match-level Dataset: Logistic Regression Model}
-Applying a train-test split of 2:1, we trained a logistic regression model on $\frac{2}{3}$ of all the ATP matches from 2012. Following the labelling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features.
+Applying a train-test split of 2:1, we trained a logistic regression model on $\frac{2}{3}$ of all the ATP matches from 2012. Following the labeling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features.
 
 We achieved an impressive accuracy rate of 87.8\% just using the historical, match-level dataset with common opponent model and difference variables. 
-\subsubsection{Error Analysis}
-A preliminary error analysis was done to explore the relative importance of all the extracted features, and the results are shown in Table~\ref{tab:logreg_curr} in the Appendix. Interestingly, we note that \textbf{RANK\_PTS} accounts for almost $20\%$ of the performance. 
+
 \subsection{Historical, Match-level Dataset: Naive Bayes Classifier}
 We also ran the data through a Gaussian-based Naive Bayes classifier, which showed an impressive 86.9\% accuracy rate (misclassifying 718 points out of 5496). As expected, it was also extremely fast. The impressive performance indicates that the extracted features might indeed be conditionally independent of each other, which is something we never thought of before, and look to explore in the next steps. On a first glance, it seems to suggest that given Player $i$ won the match, his/her performance on aces and rank point difference or double faults are indeed almost independent. We were surprised by the results, and more sanity check is needed before we put ourselves behind this. 
 \subsection{Real-time, Set-level Dataset: Logistic Regression Model}
