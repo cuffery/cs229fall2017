@@ -21,7 +21,7 @@ Data processing step (1):
      'surface_grass', 'surface_clay', 'p1_name', 'p2_name', 'player_1_fname', 'player_1_lname', 
      'player_2_fname', 'player_2_lname', 'player_1_finit', 'player_2_finit', 'grand_slam']
 
- # TODO: 'p1_game_age', 'p2_game_age'
+ # TODO: 'p1_game_age', 'p2_game_age', 'best_of'
 
 Data processing step (2):
  - source: tennis_atp/atp_matches_20xx.csv
@@ -66,6 +66,8 @@ def prepareHistData(d_):
            'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff',
            'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', #'match_result' do we need this here?
            'same_handedness', 'svpt_diff']
+
+    # TODO: separate_out p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won 
 
     d = d_[col].dropna(axis=0, how='any')
     #print(d.shape) # (1012, 22), i.e. 414 rows are dropped. we only expect 84 rows to be dropped.

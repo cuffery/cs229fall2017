@@ -82,7 +82,8 @@ def getWinnerStats(df):
                             'surface':df.surface, 
                             'tourney_date':df.tourney_date, 
                             'match_num':df.match_num, 
-                            'duration_minutes': df.minutes,
+                            'duration_minutes_won': df.minutes,
+                            'duration_minutes_lost': 0,
                             'match_result':1.,
                             'player_name':df.winner_name,
                             'player_ID':df.winner_id,
@@ -111,7 +112,8 @@ def getLoserStats(df):
                             'surface':df.surface, 
                             'tourney_date':df.tourney_date, 
                             'match_num':df.match_num, 
-                            'duration_minutes': df.minutes,
+                            'duration_minutes_won': 0,
+                            'duration_minutes_lost': df.minutes,
                             'match_result':0.,
                             'player_name':df.loser_name,
                             'player_ID':df.loser_id,
@@ -227,6 +229,25 @@ def progressBar(i):
     else:
         return
 
+def compute_durations(avgp1, avgp2):
+    # (yubo) please dont touch. magic.
+    if (avgp1.match_result.any() == 0 or avgp1.match_result.any() == 1):
+        # Should be good enough. Strictly, this should be avgp1.duration_minutes_lost/ # of wins,
+        # which is not available atm
+        p1_avg_minutes_lost = avgp1.duration_minutes_lost
+        p1_avg_minutes_won  = avgp1.duration_minutes_won
+    else:
+        p1_avg_minutes_lost = avgp1.duration_minutes_lost / avgp1.match_result
+        p1_avg_minutes_won  = avgp1.duration_minutes_won / (1 - avgp1.match_result)
+
+    if (avgp2.match_result.any() == 0 or avgp2.match_result.any() == 1):
+        p2_avg_minutes_lost = avgp2.duration_minutes_lost
+        p2_avg_minutes_won  = avgp2.duration_minutes_won
+    else:
+        p2_avg_minutes_lost = avgp2.duration_minutes_lost / avgp2.match_result
+        p2_avg_minutes_won  = avgp2.duration_minutes_won / (1 - avgp2.match_result)
+
+    return p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won
 
 # run()
 def run(source_dir, out_filename):
@@ -266,16 +287,22 @@ def run(source_dir, out_filename):
 
         (op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
         # check if we have any common opponent record before the match date, use date constraint
+        p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won = 0,0,0,0
         if (op1.shape[0] == 0 or op2.shape[0] == 0):
             # no common opponents, use player's historical performance regardless of common opponent
             avgp1 = ComputeHistoricalAvg(date, p1opponents)
             avgp2 = ComputeHistoricalAvg(date, p2opponents)
+
             if (avgp1.shape[0] == 0 or avgp2.shape[0] ==0):
+                # preserve column headers, fill with NA, will be dropped
                 res = pd.DataFrame(np.nan, index = range(1), columns = range(25))
                 res['no_historical_data'] = 1
                 no_match_record_count+=1
-            #   res = ##preserve column headers, fill with NA
-            if (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
+
+            elif (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
+                # compute 'p1_avg_minutes_lost', 'p1_avg_minutes_won', 'p2_avg_minutes_lost', 'p2_avg_minutes_won',
+                p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won = compute_durations(avgp1, avgp2)
+
                 res = ComputeAvgFromCommonOpp(avgp1, avgp2)
                 no_common_opponent_count +=1
                 res['no_common_opponent'] = 1
@@ -283,7 +310,12 @@ def run(source_dir, out_filename):
             ## has common oppnents, compute using common opponent
             avgp1 = ComputeHistoricalAvg(date, op1)
             avgp2 = ComputeHistoricalAvg(date, op2)
+
+            # compute 'p1_avg_minutes_lost', 'p1_avg_minutes_won', 'p2_avg_minutes_lost', 'p2_avg_minutes_won',
+            p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won = compute_durations(avgp1, avgp2)
+
             res = ComputeAvgFromCommonOpp(avgp1, avgp2)
+            #print('def run(source_dir, out_filename):' , res, '\n==================\n')
             has_common_opponent_count += 1
             res['no_common_opponent'] = 0
             res['no_historical_data'] = 0
@@ -292,6 +324,11 @@ def run(source_dir, out_filename):
         res['player_2_name'] = p2_name
         res['Date'] = date
         res['match_id'] = match_info.match_id[i]
+
+        res['p1_avg_minutes_lost'] = p1_avg_minutes_lost
+        res['p1_avg_minutes_won'] = p1_avg_minutes_won
+        res['p2_avg_minutes_lost'] = p2_avg_minutes_lost
+        res['p2_avg_minutes_won'] = p2_avg_minutes_won
 
         #container.append((p1,p2,d,res))
         results = results.append(res)
@@ -318,6 +355,7 @@ def run(source_dir, out_filename):
 
 def main():
     run("../../", 'joined_hist_match.csv')
+    print("\nDone.")
     return
 
 if __name__ == '__main__':
