@@ -48,11 +48,9 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
 
     return
 
-
-def main():
-    # read data
-    label_, feature_ = joined_data_pred.importData(False)
-
+def get_learning_curve_plots(diff):    
+    #read data with diff model
+    label_, feature_ = joined_data_pred.importData(diff)
     data_ = joined_data_pred.joinLabelFeature(label_, feature_)
 
     # remove useless data cols from data_
@@ -62,19 +60,12 @@ def main():
 
     after_set_1_all_train = all_train[all_train['after_set']==1]
     after_set_2_all_train = all_train[all_train['after_set']==2]
-    #print(list(data))
 
     y = after_set_1_all_train['label']
-    #print(y.size)
     
-    #drop_col = ['label','surface_hard', 'surface_grass', 'surface_clay']
     drop_col = ['label','after_set']
-    '''
+    
     X = after_set_1_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
-
-    # [TODO: remove extra col-dropping] this is trying to speed things up a bit temporarily
-    #temp_drop = ['ace_diff', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won']
-    #X = data.drop(temp_drop,axis = 1).dropna(axis=0, how='any')
 
     rfe = model_selection.getRFE(LinearSVC(),15)
     rfe = rfe.fit(X,y)
@@ -104,14 +95,26 @@ def main():
     print("train_scores_lr\n", train_scores_lr)
     print("valid_scores_lr\n", valid_scores_lr)
     plot_learning_curve(train_sizes_lr, train_scores_lr, valid_scores_lr, 'LR_learning_curve.png', 3)
+    return
 
-    #plot_learning_curve()
-    '''
+def getConfusionMatrix(diff):
     #----GET CONFUSION MATRIX FOR BEST MODEL----#
+    #read data with diff model
+    label_, feature_ = joined_data_pred.importData(diff)
+    data_ = joined_data_pred.joinLabelFeature(label_, feature_)
+    drop_col = ['label','after_set']
+
+    # remove useless data cols from data_
+    data = joined_data_pred.cleanDataForSklearn(data_)
+
+    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
+
+    after_set_1_all_train = all_train[all_train['after_set']==1]
+    after_set_2_all_train = all_train[all_train['after_set']==2]
+
     hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
     curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','ttl_pts_won']
-    
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
 
     after_set_1_train = train[train['after_set']==1]
     after_set_2_train = train[train['after_set']==2]
@@ -166,6 +169,11 @@ def main():
     tn, fp, fn, tp = confusion_matrix(after_set_2_dev['label'],pred).ravel()
     print('Current + historical after set 2')
     print('tn, fp, fn, tp',(tn, fp, fn, tp))
+
+def main():
+    get_learning_curve_plots(diff = True)
+    getConfusionMatrix(diff = True)
+
     return
 
 

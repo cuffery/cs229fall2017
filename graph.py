@@ -3,13 +3,14 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
+from sklearn.model_selection import learning_curve
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-
+import model_evaluation
 import logistic
 import model_selection
 import svm
@@ -17,7 +18,6 @@ import svm
 import joined_data_pred
 
 def main():
-    
     #-----PREPARE DATA FOR PLAYER DATA-----#
     label_, feature_ = joined_data_pred.importData(diff = False)
 
@@ -141,8 +141,10 @@ def main():
     ax.set_title('In-Match: After 1st set')
 
     fig.savefig('Prediction hist curr.png')
-
-
+    
+    #-----GRAPH LEARNING CURVE----#
+    model_evaluation.get_learning_curve_plots(diff = True)
+    
 
     return
 
