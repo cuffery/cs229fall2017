@@ -48,7 +48,7 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
 
     return
 
-def get_learning_curve_plots(diff):    
+def get_learning_curve_plots(diff):
     #read data with diff model
     label_, feature_ = joined_data_pred.importData(diff)
     data_ = joined_data_pred.joinLabelFeature(label_, feature_)

@@ -8,6 +8,50 @@
 #   into final_data.csv
 #
 #   Owner: Yubo Tian
+
+'''
+Features provided by each source file:
+Data processing step (1):
+ - source: charting-m-matches.csv
+    ['match_id', 'Player 1', 'Player 2', 'Pl 1 hand', 'Pl 2 hand', 'Gender', 'Date', 'Tournament',
+     'Round', 'Time', 'Court', 'Surface', 'Umpire', 'Best of', 'Final TB?', 'Charted by']
+
+ - output (as of Dec 10):
+    ['Unnamed: 0', 'match_id', 'Date', 'Tournament', 'player_1_right', 'player_2_right', 'surface_hard',
+     'surface_grass', 'surface_clay', 'p1_name', 'p2_name', 'player_1_fname', 'player_1_lname', 
+     'player_2_fname', 'player_2_lname', 'player_1_finit', 'player_2_finit', 'grand_slam']
+
+ # TODO: 'p1_game_age', 'p2_game_age'
+
+Data processing step (2):
+ - source: tennis_atp/atp_matches_20xx.csv
+    ['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level', 'tourney_date', 'match_num',
+     'winner_id', 'winner_seed', 'winner_entry', 'winner_name', 'winner_hand', 'winner_ht', 'winner_ioc',
+     'winner_age', 'winner_rank', 'winner_rank_points', 'loser_id', 'loser_seed', 'loser_entry', 
+     'loser_name', 'loser_hand', 'loser_ht', 'loser_ioc', 'loser_age', 'loser_rank', 'loser_rank_points',
+     'score', 'best_of', 'round', 'minutes', 'w_ace', 'w_df', 'w_svpt', 'w_1stIn', 'w_1stWon', 'w_2ndWon',
+     'w_SvGms', 'w_bpSaved', 'w_bpFaced', 'l_ace', 'l_df', 'l_svpt', 'l_1stIn', 'l_1stWon', 'l_2ndWon',
+     'l_SvGms', 'l_bpSaved', 'l_bpFaced']
+
+ - output (as of Dec 10):
+    ['match_id', 'Tournament', 'surface_hard', 'surface_grass', 'surface_clay', '1st_serve_pts_won_diff',
+     '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 
+     'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 
+     'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff', 'player']
+
+ # TODO: 'avg_age_lost_to', 'avg_age_win_against'
+         'avg_minutes_lost', 'avg_minutes_won'
+
+Data processing step (3):
+ - source: charting-m-stats-Overview.csv:
+    ['match_id', 'player', 'set', 'serve_pts', 'aces', 'dfs', 'first_in', 'first_won',
+     'second_in', 'second_won', 'bk_pts', 'bp_saved', 'return_pts', 'return_pts_won', 
+     'winners', 'winners_fh', 'winners_bh', 'unforced', 'unforced_fh', 'unforced_bh']
+
+ - output (as of Dec 10):
+    ['Unnamed: 0', 'match_id', 'after_set', 'player', 'aces', 'dfs', 'unforced', '1st_srv_pct',
+     'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct', 'ttl_pts_won']
+'''
 import pandas as pd
 import sys
 
@@ -64,21 +108,21 @@ def main():
     print('(2/5) Generating historical common opponents data for matches. This may take a while...')
     sys.path.insert(0, './past_perf/')
     import AddingCommonOpponentStats_by_name as common_oppo_data
-    common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
+    #common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
     print ('\nDone.')
 
     # (3)
     print('(3/5) Processing real time match data...')
     sys.path.insert(0, './in_game_data/')
     import curr_match_data
-    curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
+    #curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
     print('\nDone.')
 
     # Now Process the labels
     print('(4/5) Extracting labels - result per match and result per set')
     import label_match, label_set
-    label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
-    label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
+    #label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
+    #label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
     print("\nDone. Output file: ./result_per_match.csv, ./result_per_set.csv")
 
     # Now perform the final join
@@ -91,6 +135,12 @@ def main():
 
     # inner join with curr_match_data
     curr_match_data = pd.read_csv('./in_game_data/curr_match_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+
+    temp = pd.read_csv('./match_info/match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    print('1. temp', list( temp ))
+    print('2. hist_data', list( hist_data ))
+    print('3. curr_match_data', list( curr_match_data ))
+
 
     joined_data = pd.merge(hist_data, curr_match_data, how="inner",on=['match_id','player'])
     joined_data.to_csv('./final_joined_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
