@@ -84,9 +84,9 @@ def getWinnerStats(df):
                             'match_num':df.match_num, 
                             'duration_minutes': df.minutes,
                             'duration_minutes_won': df.minutes,
-                            'duration_minutes_lost': 0,
+                            'duration_minutes_lost': np.nan,
                             'avg_age_won_against': df.winner_age,
-                            'avg_age_lost_to': 0,
+                            'avg_age_lost_to': np.nan,
                             'match_result':1.,
                             'player_name':df.winner_name,
                             'player_ID':df.winner_id,
@@ -116,9 +116,9 @@ def getLoserStats(df):
                             'tourney_date':df.tourney_date, 
                             'match_num':df.match_num, 
                             'duration_minutes': df.minutes,
-                            'duration_minutes_won': 0,
+                            'duration_minutes_won': np.nan,
                             'duration_minutes_lost': df.minutes,
-                            'avg_age_won_against': 0,
+                            'avg_age_won_against': np.nan,
                             'avg_age_lost_to': df.loser_age,
                             'match_result':0.,
                             'player_name':df.loser_name,
@@ -300,7 +300,7 @@ def run(source_dir, out_filename):
     sys.stdout.write("\b" * int(match_info.shape[0]/20 + 1))
 
     for i in range(match_info.shape[0]):
-        res = pd.DataFrame(np.nan, index = range(1), columns = range(25))
+        res = pd.DataFrame()
 
         p1_name = match_info.p1_name[i]
         p2_name = match_info.p2_name[i]
@@ -322,16 +322,12 @@ def run(source_dir, out_filename):
 
             if (avgp1.shape[0] == 0 or avgp2.shape[0] ==0):
                 # preserve column headers, fill with NA, will be dropped
-                res = pd.DataFrame(np.nan, index = range(1), columns = range(25))
+                res = pd.DataFrame()
                 res['no_historical_data'] = 1
                 no_match_record_count+=1
 
             elif (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
                 # compute 'p1_avg_minutes_lost', 'p1_avg_minutes_won', 'p2_avg_minutes_lost', 'p2_avg_minutes_won',
-                (p1_avg_minutes_lost, p1_avg_minutes_won,
-                p2_avg_minutes_lost, p2_avg_minutes_won,
-                p1_avg_age_lost_to, p1_avg_age_won_against,
-                p2_avg_age_lost_to, p2_avg_age_won_against) = compute_durations_and_age(avgp1, avgp2)
 
                 res = ComputeAvgFromCommonOpp(avgp1, avgp2)
                 no_common_opponent_count +=1
@@ -341,35 +337,42 @@ def run(source_dir, out_filename):
             avgp1 = ComputeHistoricalAvg(date, op1)
             avgp2 = ComputeHistoricalAvg(date, op2)
 
-            # compute 'p1_avg_minutes_lost', 'p1_avg_minutes_won', 'p2_avg_minutes_lost', 'p2_avg_minutes_won',
-            (p1_avg_minutes_lost, p1_avg_minutes_won,
-            p2_avg_minutes_lost, p2_avg_minutes_won,
-            p1_avg_age_lost_to, p1_avg_age_won_against,
-            p2_avg_age_lost_to, p2_avg_age_won_against) = compute_durations_and_age(avgp1, avgp2)
-
             res = ComputeAvgFromCommonOpp(avgp1, avgp2)
             #print('def run(source_dir, out_filename):' , res, '\n==================\n')
             has_common_opponent_count += 1
             res['no_common_opponent'] = 0
             res['no_historical_data'] = 0
 
+
         res['player_1_name'] = p1_name
         res['player_2_name'] = p2_name
         res['Date'] = date
         res['match_id'] = match_info.match_id[i]
 
-        res['p1_avg_minutes_lost'] = p1_avg_minutes_lost
-        res['p1_avg_minutes_won'] = p1_avg_minutes_won
-        res['p2_avg_minutes_lost'] = p2_avg_minutes_lost
-        res['p2_avg_minutes_won'] = p2_avg_minutes_won
+        res['p1_avg_minutes_lost'] = avgp1.duration_minutes_lost
+        res['p1_avg_minutes_won'] = avgp1.duration_minutes_won
+        res['p2_avg_minutes_lost'] = avgp2.duration_minutes_lost
+        res['p2_avg_minutes_won'] = avgp2.duration_minutes_won
 
-        res['p1_avg_age_lost_to'] = p1_avg_age_lost_to
-        res['p1_avg_age_won_against'] = p1_avg_age_won_against
-        res['p2_avg_age_lost_to'] = p2_avg_age_lost_to
-        res['p2_avg_age_won_against'] = p2_avg_age_won_against
+        res['p1_avg_age_lost_to'] = avgp1.avg_age_lost_to
+        res['p1_avg_age_won_against'] = avgp1.avg_age_won_against
+        res['p2_avg_age_lost_to'] = avgp2.avg_age_lost_to
+        res['p2_avg_age_won_against'] = avgp2.avg_age_won_against
 
-        #container.append((p1,p2,d,res))
+        print("\n debug -------------------- \n")
+        print('\n p1_avg_minutes_lost ', avgp1.duration_minutes_lost.values)
+        print('\n p1_avg_age_won_against ', avgp1.avg_age_won_against.values)
+        print('\n p2_avg_minutes_lost ', avgp2.duration_minutes_lost.values)
+        print('\n p2_avg_minutes_won ', avgp2.duration_minutes_won.values)
+        print('\n p2_avg_age_lost_to ', avgp2.avg_age_lost_to.values)
+        print('\n p2_avg_age_won_against ', avgp2.avg_age_won_against.values, '\n')
+
         results = results.append(res)
+
+        print(res)
+        print(" ---- ")
+        print(results[['p2_avg_minutes_won','p2_avg_minutes_lost']])
+        print("\n --------------------debug \n")
 
         # progress bar
         if ( i != 0 and i % 20 == 0 ):
@@ -380,8 +383,13 @@ def run(source_dir, out_filename):
     #print('no historical data p1 or p2',no_match_record_count)
     #print('has common opponents',has_common_opponent_count)
     #print('--------------- debug data ---------------')
+    print('before drop dup', results.shape)
+    results.to_csv('./debug_resultfromCOM_beforedrop.csv', sep=",",encoding = "ISO-8859-1")
 
     results = results.drop_duplicates(['match_id'])
+    print('after drop dup', results.shape)
+    results.to_csv('./debug_resultfromCOM.csv', sep=",",encoding = "ISO-8859-1")
+
     match_info = match_info.drop_duplicates(['match_id'])
 
     # results.to_csv('common_test.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
