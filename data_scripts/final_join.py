@@ -130,14 +130,14 @@ def main():
     print('(2/5) Generating historical common opponents data for matches. This may take a while...')
     sys.path.insert(0, './past_perf/')
     import AddingCommonOpponentStats_by_name as common_oppo_data
-    #common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
+    common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
     print ('\nDone.')
 
     # (3)
     print('(3/5) Processing real time match data...')
     sys.path.insert(0, './in_game_data/')
     import curr_match_data
-    #curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
+    curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
     print('\nDone.')
 
     # Now Process the labels
@@ -168,7 +168,7 @@ def main():
     joined_data.to_csv('./final_joined_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
 
     print("Done. Output file: ./final_joined_data.csv")
-    print(joined_data.shape)# = (5224, 35)
+    print('joined_data.shape ' , joined_data.shape)# = (5224, 35)
     # TODO: investigate the data cleaning process. 5224 is quite low. 
 
     return

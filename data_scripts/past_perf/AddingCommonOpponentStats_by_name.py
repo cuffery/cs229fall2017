@@ -13,6 +13,7 @@ import pandas as pd
 import glob
 import datetime
 import sys
+import time
 
 # util function
 def parse(t):
@@ -301,6 +302,7 @@ def run(source_dir, out_filename):
 
     for i in range(match_info.shape[0]):
         res = pd.DataFrame()
+        add = True
 
         p1_name = match_info.p1_name[i]
         p2_name = match_info.p2_name[i]
@@ -311,9 +313,6 @@ def run(source_dir, out_filename):
 
         (op1, op2) = FindCommonOpponentStats(p1opponents, p2opponents)
 
-        p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won = 0,0,0,0
-        p1_avg_age_lost_to, p1_avg_age_won_against, p2_avg_age_lost_to, p2_avg_age_won_against = 0,0,0,0
-
         # check if we have any common opponent record before the match date, use date constraint
         if (op1.shape[0] == 0 or op2.shape[0] == 0):
             # no common opponents, use player's historical performance regardless of common opponent
@@ -322,9 +321,7 @@ def run(source_dir, out_filename):
 
             if (avgp1.shape[0] == 0 or avgp2.shape[0] ==0):
                 # preserve column headers, fill with NA, will be dropped
-                res = pd.DataFrame()
-                res['no_historical_data'] = 1
-                no_match_record_count+=1
+                add = False
 
             elif (avgp1.shape[0] > 0 and avgp2.shape[0] > 0):
                 # compute 'p1_avg_minutes_lost', 'p1_avg_minutes_won', 'p2_avg_minutes_lost', 'p2_avg_minutes_won',
@@ -332,47 +329,36 @@ def run(source_dir, out_filename):
                 res = ComputeAvgFromCommonOpp(avgp1, avgp2)
                 no_common_opponent_count +=1
                 res['no_common_opponent'] = 1
+
         else:
             ## has common oppnents, compute using common opponent
             avgp1 = ComputeHistoricalAvg(date, op1)
             avgp2 = ComputeHistoricalAvg(date, op2)
 
             res = ComputeAvgFromCommonOpp(avgp1, avgp2)
-            #print('def run(source_dir, out_filename):' , res, '\n==================\n')
+            '''
             has_common_opponent_count += 1
             res['no_common_opponent'] = 0
             res['no_historical_data'] = 0
+            '''
 
+        if (add):
+            res['player_1_name'] = p1_name
+            res['player_2_name'] = p2_name
+            res['Date'] = date
+            res['match_id'] = match_info.match_id[i]
 
-        res['player_1_name'] = p1_name
-        res['player_2_name'] = p2_name
-        res['Date'] = date
-        res['match_id'] = match_info.match_id[i]
+            res['p1_avg_minutes_lost'] = avgp1.reset_index().duration_minutes_lost.iloc[0] 
+            res['p1_avg_minutes_won'] = avgp1.reset_index().duration_minutes_won.iloc[0] 
+            res['p2_avg_minutes_lost'] = avgp2.reset_index().duration_minutes_lost.iloc[0] 
+            res['p2_avg_minutes_won'] = avgp2.reset_index().duration_minutes_won.iloc[0] 
 
-        res['p1_avg_minutes_lost'] = avgp1.duration_minutes_lost
-        res['p1_avg_minutes_won'] = avgp1.duration_minutes_won
-        res['p2_avg_minutes_lost'] = avgp2.duration_minutes_lost
-        res['p2_avg_minutes_won'] = avgp2.duration_minutes_won
+            res['p1_avg_age_lost_to'] = avgp1.reset_index().avg_age_lost_to.iloc[0] 
+            res['p1_avg_age_won_against'] = avgp1.reset_index().avg_age_won_against.iloc[0] 
+            res['p2_avg_age_lost_to'] = avgp2.reset_index().avg_age_lost_to.iloc[0] 
+            res['p2_avg_age_won_against'] = avgp2.reset_index().avg_age_won_against.iloc[0] 
 
-        res['p1_avg_age_lost_to'] = avgp1.avg_age_lost_to
-        res['p1_avg_age_won_against'] = avgp1.avg_age_won_against
-        res['p2_avg_age_lost_to'] = avgp2.avg_age_lost_to
-        res['p2_avg_age_won_against'] = avgp2.avg_age_won_against
-
-        print("\n debug -------------------- \n")
-        print('\n p1_avg_minutes_lost ', avgp1.duration_minutes_lost.values)
-        print('\n p1_avg_age_won_against ', avgp1.avg_age_won_against.values)
-        print('\n p2_avg_minutes_lost ', avgp2.duration_minutes_lost.values)
-        print('\n p2_avg_minutes_won ', avgp2.duration_minutes_won.values)
-        print('\n p2_avg_age_lost_to ', avgp2.avg_age_lost_to.values)
-        print('\n p2_avg_age_won_against ', avgp2.avg_age_won_against.values, '\n')
-
-        results = results.append(res)
-
-        print(res)
-        print(" ---- ")
-        print(results[['p2_avg_minutes_won','p2_avg_minutes_lost']])
-        print("\n --------------------debug \n")
+            results = results.append(res)
 
         # progress bar
         if ( i != 0 and i % 20 == 0 ):
@@ -400,8 +386,12 @@ def run(source_dir, out_filename):
 
 
 def main():
+    start_time = time.time()
+
     run("../../", 'joined_hist_match.csv')
     print("\nDone.")
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     return
 
 if __name__ == '__main__':
