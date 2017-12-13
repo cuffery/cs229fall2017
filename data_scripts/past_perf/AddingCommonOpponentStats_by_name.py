@@ -369,12 +369,14 @@ def run(source_dir, out_filename):
     #print('no historical data p1 or p2',no_match_record_count)
     #print('has common opponents',has_common_opponent_count)
     #print('--------------- debug data ---------------')
+    '''
     print('before drop dup', results.shape)
     results.to_csv('./debug_resultfromCOM_beforedrop.csv', sep=",",encoding = "ISO-8859-1")
 
     results = results.drop_duplicates(['match_id'])
     print('after drop dup', results.shape)
     results.to_csv('./debug_resultfromCOM.csv', sep=",",encoding = "ISO-8859-1")
+    '''
 
     match_info = match_info.drop_duplicates(['match_id'])
 

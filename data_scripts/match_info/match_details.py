@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import datetime
+import math
 
 def importData(filename):
     match_data = pd.read_csv(filename, delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
@@ -51,11 +53,63 @@ def processMatchDetails(match_data):
 
     return match_data[ls]
 
+# util function
+def preparse_date(t):
+
+    string = str(ts)
+    tsdt = datetime.date(int(string[:4]), int(string[4:6]), int(string[6:]))
+
+    return 
+
+
 def run(source_dir, out_filename):
     raw_match_data = importData(source_dir+'charting-m-matches.csv')
     processed_match_data = processMatchDetails(raw_match_data)
-
     processed_match_data.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1")
+
+    
+    # find the age of each player on the match day: 'p1_mday_age' and 'p2_mday_age',
+    # find date of birth from atp_players, calculate age from game data and dob
+    player_info = pd.read_csv(source_dir + '../tennis_atp/atp_players.csv',
+                         index_col=None,
+                         header=0,
+                         encoding = "ISO-8859-1")
+
+    match_info = pd.read_csv(source_dir + '../data_scripts/match_info/match_details.csv',
+                         index_col=None,
+                         header=0,
+                         encoding = "ISO-8859-1")
+
+    match_info['Date'] = pd.to_datetime(match_info['Date'])
+
+
+    player_info.columns = ['player_id','p_fname','p_lname','player_hand','player_dob','player_country']
+
+    player_info['name'] = player_info['p_fname'] + " " + player_info['p_lname']
+
+    # use 27 as place holder, also default value
+    match_info['p1_mday_age'] = 27.0
+    match_info['p2_mday_age'] = 27.0
+
+    for i in range(match_info.shape[0]):
+        p1_name = match_info.p1_name[i]
+        p2_name = match_info.p2_name[i]
+        match_date = match_info.Date[i]
+        match_id = match_info.match_id[i]
+
+        p1_info = player_info[player_info.name == p1_name]
+        p2_info = player_info[player_info.name == p2_name]
+
+        if (p1_info.shape[0] == 1 and not math.isnan(p1_info.player_dob.iloc[0])):
+            #match_info.set_value(i, 'p1_mday_age', (match_date - pd.to_datetime(str(int(p1_info.player_dob.iloc[0])))).days/365)
+            match_info.at[i,'p1_mday_age'] = (match_date - pd.to_datetime(str(int(p1_info.player_dob.iloc[0])))).days/365
+        if (p2_info.shape[0] == 1 and not math.isnan(p2_info.player_dob.iloc[0])):
+            match_info.at[i,'p2_mday_age'] = (match_date - pd.to_datetime(str(int(p2_info.player_dob.iloc[0])))).days/365
+
+    # find age
+
+    match_info.to_csv(out_filename, sep=",",quoting=3, encoding = "ISO-8859-1")
+
     return
 
 def main():
