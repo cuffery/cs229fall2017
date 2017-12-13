@@ -9,7 +9,7 @@ Data generation:
 * For player model in current match, set ```G_USE_DIFF``` in .\data_scripts\curr_match_data.py to False, run final_join.py
 * For difference model in current match, set ```G_USE_DIFF``` in .\data_scripts\curr_match_data.py to True, run final_join_diff.py
 
-Graph generation:
+Train model, and plot learning curves:
 * After obtaining final_joined_data or final_joined_data_diff, run graph.py
 
 File description:
