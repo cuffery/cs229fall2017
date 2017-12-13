@@ -205,12 +205,16 @@ def getData(diff):
     return data_split
 
 def main():
+    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
+    curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct']
+    
     data_split = getData(diff = True)
+    '''
     #----GET CONFUSION MATRIX FOR BEST MODEL----#
     getConfusionMatrix(data_split,num_features = 15,model = LinearSVC())
     
     #----GET FEATURE RANKING FOR DIFFERENT DATA MODEL----#
-    #Return feature ranking for different data 
+    #historical + current 
     #after set 1 with logistic regression
     outputRanking(LogisticRegression(),data_split['after_set_1_all_train'].drop(['label'], axis=1),data_split['after_set_1_all_train']['label'],'log_after_set1_ranking_diff.csv')
     #after set 1 with svc
@@ -219,7 +223,14 @@ def main():
     outputRanking(LogisticRegression(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'log_after_set2_ranking_diff.csv')
     #after set 2 with svc
     outputRanking(LinearSVC(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'svc_after_set2_ranking_diff.csv')
+    '''
+    #historical only
+    outputRanking(LogisticRegression(),data_split['train'][hist],data_split['train']['label'],'log_hist_ranking_diff.csv')
+    #outputRanking(LinearSVC(),data_split['train'][hist],data_split['train']['label'],'log_hist_ranking_diff.csv')
 
+    #current after set 1 only
+    #outputRanking(LogisticRegression(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
+    #outputRanking(LinearSVC(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
 
 
     return
