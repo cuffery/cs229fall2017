@@ -4,17 +4,22 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
+import operator
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-
-
-import scipy
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import learning_curve
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
-
 from sklearn.linear_model import LogisticRegression
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics import log_loss
+
+#our scripts
+import graph
 import logistic
 import svm
 import joined_data_pred
@@ -172,8 +177,8 @@ def getData(diff):
 
     data = joined_data_pred.cleanDataForSklearn(data_)
 
-    all_train, test = train_test_split(data, test_size=0.20, random_state=666)
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=666)
+    all_train, test = train_test_split(data, test_size=0.20, random_state=520)
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=520)
 
     after_set_1_all_train = all_train[all_train['after_set']==1].drop(drop_col,axis = 1).dropna(axis=0, how='any')
     after_set_2_all_train = all_train[all_train['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
@@ -185,7 +190,7 @@ def getData(diff):
     after_set_2_dev = dev[dev['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
     all_train = all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
-    test = test.drop(drop_col,axis = 1).dropna(axis=0, how='any')
+    #test = test.drop(drop_col,axis = 1).dropna(axis=0, how='any')
     train = train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
     dev = dev.drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
@@ -204,14 +209,229 @@ def getData(diff):
     data_split['dev'] =  dev
     return data_split
 
-def main():
-    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
-    curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct']
+def getAccAlg(feature,label):
+    #return best model
+
+    accuracy = {}
+    model = {}
+    #Using RFE with logistic regression to get top 15 features 
+    rfe = model_selection.getRFE(LogisticRegression(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+
+    #Logstic
+    '''
+    model = logistic.getLogModel(feature_t,label)
+
+    print('logistic',model.score(feature_dev_t,label_dev))
+    '''
+    model = logistic.getLogModel(feature_t,label)
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'logistic'
+    accuracy[key] = score.mean()
+    print('logistic',score.mean())
     
-    data_split = getData(diff = True)
+    #Using RFE with LinearSVC to get top 15 features 
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+    
+    #Linear SVC
+    model = svm.getLinearSVCModel(feature_t,label)
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+
+    key = 'linear SVC'
+    accuracy[key] = score.mean()
+    print('linear SVC',score.mean())
+    
+    #SVC with different kernel
+    model = svm.getSVCModel(feature_t,label,ker = 'rbf')
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'SVC + rbf kernel'
+    accuracy[key] = score.mean()
+    print('SVC + rbf kernel',score.mean())
+    
+    '''
+    model = svm.getSVCModel(feature_t,label,ker = 'poly')
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'SVC + poly kernel'
+    accuracy[key] = score.mean()
+    print('SVC + poly kernel',score.mean())
+    
+    model = svm.getSVCModel(feature_t,label,ker = 'linear')
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'SVC + linear kernel'
+    accuracy[key] = score.mean()
+    print('SVC + linear kernel',score.mean())
+    '''
+    #Naive Bayes
+    #Using top 15 features
+    model = GaussianNB()
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'SVC + linear kernel'
+    accuracy[key] = score.mean()
+    print('Naive Bayes with 15 features',score.mean())
+
+    model = GaussianNB()
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'Naive Bayes with 15 features'
+    accuracy[key] = score.mean()
+    print('Naive Bayes with 15 features',score.mean())
+
+    #Gaussian Discriminant Analysis
+    model = QuadraticDiscriminantAnalysis()
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = "Quad discriminant anlysis with 15 features"
+    accuracy[key] = score.mean()
+    print('Quad discriminant anlysis with 15 features',score.mean())
+
+    #Linear Gaussian Discriminant Analysis
+    model = LinearDiscriminantAnalysis()
+    score = model_selection.getCrossValScore(model,feature_t,label,5)
+    key = 'Linear discriminant anlysis with 15 features'
+    accuracy[key] =score.mean()
+    print('Linear discriminant anlysis with 15 features',score.mean())
+
+    #Using all features
+    model = GaussianNB()
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'Naive Bayes with all features'
+    accuracy[key] = score.mean()
+    print('Naive Bayes with all features',score.mean())
+    '''
+    #Gaussian Discriminant Analysis
+    model = QuadraticDiscriminantAnalysis()
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'Quad discriminant anlysis with all features'
+    accuracy[key] = score.mean()
+    print('Quad discriminant anlysis with all features',score.mean())
+    '''
+    #Linear Gaussian Discriminant Analysis
+    model = LinearDiscriminantAnalysis()
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'Linear discriminant anlysis with all features'
+    accuracy[key] = score.mean()
+    print('Linear discriminant anlysis with all features',score.mean())
+
+    best_model = max(accuracy, key=accuracy.get)
+    print("BEST MODEL IS: ",best_model)
+    return best_model
+
+
+
+def main():
+    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff','avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of']
+    curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','match_day_age','opponent_match_day_age','rally_sum']
+    
+    data_split = getData(diff = False)
+    print(list(data_split['train']))
+    '''
+    #----FEATURE ANALYSIS AND LEARNING CURVE----#
+    #Get graphs with feature analysis and learning curve
+    #This script outputs graphs used in report and poster
+    graph.main()
+    '''
+    #----EXPLORE DIFFERENT MODELS FOR FOUR DATA MODEL----#
+    #Using hist + after 1st set
+    print('-----Data model: using current + after 1st set-----')
+
+    feature = data_split['after_set_1_all_train'].drop(['label'],axis = 1)
+    label = data_split['after_set_1_all_train']['label']
+    
+    getAccAlg(feature,label)
+
+    #best model is Linear discriminant anlysis with all features
+    model = LinearDiscriminantAnalysis()
+    feature = data_split['after_set_1_all_train'].drop(['label'],axis = 1)
+    label = data_split['after_set_1_all_train']['label']
+    model.fit(feature,label)
+
+    test = data_split['test']
+    feature_test = test[test['after_set']==1].drop(['label','after_set'],axis = 1)
+    label_test = test[test['after_set']==1]['label']
+
+    print('Test score = ',model.score(feature_test,label_test))
+
+    #Using hist + after 2nd set
+    print('-----Data model: using current + after 2nd set-----')
+
+    feature = data_split['after_set_2_all_train'].drop(['label'],axis = 1)
+    label = data_split['after_set_2_all_train']['label']
+    
+    getAccAlg(feature,label)
+
+    #best model is linear SVC
+    model = LinearSVC()
+
+    feature = data_split['after_set_2_all_train'].drop(['label'],axis = 1)
+    label = data_split['after_set_2_all_train']['label']
+
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+
+    model.fit(feature_t,label)
+
+    test = data_split['test']
+    feature_test = test[test['after_set']==2].drop(['label','after_set'],axis = 1)
+    label_test = test[test['after_set']==2]['label']
+
+    print('Test score = ',model.score(rfe.transform(feature_test),label_test))
+
+    #Using historical only
+    print('-----Data model: historical data only-----')
+
+    feature = data_split['all_train'][hist]
+    label = data_split['all_train']['label']
+    
+    getAccAlg(feature,label)
+
+    #best model is SVC + rbf kernel
+    model = SVC(kernel = 'rbf')
+
+    feature = data_split['all_train'][hist]
+    label = data_split['all_train']['label']
+
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+
+    model.fit(feature_t,label)
+
+    test = data_split['test']
+    feature_test = test[hist]
+    label_test = test['label']
+
+    print('Test score = ',model.score(rfe.transform(feature_test),label_test))
+    #Using current after set 1 only
+    print('-----Data model: current data only-----')
+
+    feature = data_split['all_train'][curr]
+    label = data_split['all_train']['label']
+    
+    getAccAlg(feature,label)
+
+    #best model is linear SVC
+
+    model = LinearSVC()
+
+    feature = data_split['all_train'][curr]
+    label = data_split['all_train']['label']
+
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+
+    model.fit(feature_t,label)
+
+    test = data_split['test']
+    feature_test = test[curr]
+    label_test = test['label']
+
+    print('Test score = ',model.score(rfe.transform(feature_test),label_test))
     '''
     #----GET CONFUSION MATRIX FOR BEST MODEL----#
-    getConfusionMatrix(data_split,num_features = 15,model = LinearSVC())
+    #getConfusionMatrix(data_split,num_features = 15,model = LinearSVC())
     
     #----GET FEATURE RANKING FOR DIFFERENT DATA MODEL----#
     #historical + current 
@@ -223,16 +443,18 @@ def main():
     outputRanking(LogisticRegression(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'log_after_set2_ranking_diff.csv')
     #after set 2 with svc
     outputRanking(LinearSVC(),data_split['after_set_2_all_train'].drop(['label'], axis=1),data_split['after_set_2_all_train']['label'],'svc_after_set2_ranking_diff.csv')
-    '''
+    
+    
+
     #historical only
     outputRanking(LogisticRegression(),data_split['train'][hist],data_split['train']['label'],'log_hist_ranking_diff.csv')
-    #outputRanking(LinearSVC(),data_split['train'][hist],data_split['train']['label'],'log_hist_ranking_diff.csv')
+    outputRanking(LinearSVC(),data_split['train'][hist],data_split['train']['label'],'log_hist_ranking_diff.csv')
 
     #current after set 1 only
-    #outputRanking(LogisticRegression(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
-    #outputRanking(LinearSVC(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
-
-
+    outputRanking(LogisticRegression(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
+    outputRanking(LinearSVC(),data_split['train'][curr],data_split['train']['label'],'log_hist_ranking_diff.csv')
+    
+    '''
     return
 
 

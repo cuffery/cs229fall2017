@@ -3,6 +3,8 @@ import numpy as np
 import scipy
 from sklearn import svm
 import logistic
+from sklearn.svm import LinearSVC
+
     
     
 def getAccuracy(feature, label):
@@ -13,6 +15,15 @@ def getAccuracy(feature, label):
 def getAccuracyModel(model,feature, label):
     return model.score(feature,label)
 
+def getSVCModel(feature,label,ker):
+    clf = svm.SVC(kernel = ker,max_iter = 10000)
+    model = clf.fit(feature,label)
+    return model
+
+def getLinearSVCModel(feature,label):
+    clf = LinearSVC()
+    model = clf.fit(feature,label)
+    return model
 
 def getTestAccuracy(feature_train,label_train,feature_test,label_test):
     clf = svm.SVC()
