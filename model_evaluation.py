@@ -341,7 +341,7 @@ def main():
     getAccAlg(feature,label)
 
     #best model is Linear discriminant anlysis with all features
-    model = LinearDiscriminantAnalysis()
+    model = LinearSVC()
     feature = data_split['after_set_1_all_train'].drop(['label'],axis = 1)
     label = data_split['after_set_1_all_train']['label']
     model.fit(feature,label)
@@ -411,9 +411,9 @@ def main():
     
     getAccAlg(feature,label)
 
-    #best model is linear SVC
+    #best model is linear discriminant analysis with feature size = 15
 
-    model = LinearSVC()
+    model = LinearDiscriminantAnalysis()
 
     feature = data_split['all_train'][curr]
     label = data_split['all_train']['label']
