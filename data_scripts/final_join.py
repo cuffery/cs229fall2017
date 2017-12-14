@@ -144,21 +144,21 @@ def main():
     print('(2/5) Generating historical common opponents data for matches. This may take a while...')
     sys.path.insert(0, './past_perf/')
     import AddingCommonOpponentStats_by_name as common_oppo_data
-    #common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
+    common_oppo_data.run(source_dir = '../', out_filename = './past_perf/joined_hist_match.csv')
     print ('\nDone.')
 
     # (3)
     print('(3/5) Processing real time match data...')
     sys.path.insert(0, './in_game_data/')
     import curr_match_data
-    #curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
+    curr_match_data.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './in_game_data/curr_match_data.csv')
     print('\nDone.')
 
     # Now Process the labels
     print('(4/5) Extracting labels - result per match and result per set')
     import label_match, label_set
     label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
-    #label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
+    label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
     print("\nDone. Output file: ./result_per_match.csv, ./result_per_set.csv")
 
     # Now perform the final join
