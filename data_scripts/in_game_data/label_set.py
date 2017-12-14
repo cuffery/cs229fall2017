@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import time
 import sys
+import math
 
 def findFinalSetWinner(group):
     winner = 0
@@ -58,8 +59,36 @@ def findWinner(matchData, currSet):
         return winner
 
 
+def getRallyCountSumAfterSet(d, set):
+    r = 0
+    for i in range(set):
+        r += d.iloc[i]
+    return r
+
+def prepareRallyCount(match):
+    avg_rallyCount = 4 # based on bg research
+
+    # replace NaN with avg_rallyCount, set to unicode str for x.isnumeric() check
+    match = match.fillna(str(avg_rallyCount))
+
+    # clean up by dropping non int values, then cast for sum
+    match = match[match['rallyCount'].apply(lambda x: x.isnumeric())]
+
+    match['rallyCount'] = match['rallyCount'].astype(int, errors='raise')
+
+    # calc sum of each set, result is in order
+    sets = match.groupby(['Set1','Set2'])
+
+    sum_rally_count = sets['rallyCount'].sum()
+
+    #print(sum_rally_count)
+    #print(sum_rally_count.iloc[0])
+
+    return sum_rally_count
+
+
 def processData(data_):
-    data = data_[(data_['match_id'].map(lambda x: x.startswith('20')))][['match_id','Set1','Set2','Gm1','Gm2','Pts','Svr']].apply(pd.to_numeric, errors='ignore')
+    data = data_[(data_['match_id'].map(lambda x: x.startswith('20')))][['match_id','Set1','Set2','Gm1','Gm2','Pts','Svr','rallyCount']].apply(pd.to_numeric, errors='ignore')
 
     grouped = data.groupby('match_id')
 
@@ -72,13 +101,20 @@ def processData(data_):
     i = 0
     for match, group in grouped:
         i += 1
+
+        # rally count
+        sum_rally_count = prepareRallyCount(group[['match_id','Set1','Set2','rallyCount']])
+
         num_sets = group.Set1.max() + group.Set2.max() + 1 # +1 for the last set
+
+
         for s in range(num_sets):
             # find winner and add an entry for each set in each game
             p = pd.DataFrame({
                 'match_id' : grouped.get_group(match).match_id.unique(),
                 'set' : s + 1,
-                'set_winner' : findWinner(group, s+1)
+                'set_winner' : findWinner(group, s+1),
+                'rally_sum' : getRallyCountSumAfterSet(sum_rally_count, s+1)
             })
 
             r = r.append(p)
@@ -102,7 +138,9 @@ def run(source_dir, out_filename):
 
 # main()
 def main():
+    print("[",end="")
     run('../../tennis_MatchChartingProject/', '../result_per_set.csv')
+    print("\nDone.")
     return
 
 

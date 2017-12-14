@@ -61,7 +61,7 @@ def prepareHistData(d_):
     # no common opponent 74
     # no historical data p1 or p2 84
     # has common opponents 1269
-    print(list(d_))
+    # print(list(d_))
     col = ['match_id', 'Tournament', 'surface_hard', 'surface_grass', 'surface_clay', #grand_slam TODO: enable when bug fixed
            '1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff',
            'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff', 'duration_minutes',
@@ -108,7 +108,7 @@ def prepareHistData(d_):
 
     r = pd.concat([d1, d2])
 
-    print("prepareHistData",list(r))
+    #print("prepareHistData",list(r))
 
     return r
 
@@ -158,13 +158,25 @@ def main():
     hist_data = prepareHistData(hist_data_)
 
     # inner join with curr_match_data
-    curr_match_data = pd.read_csv('./in_game_data/curr_match_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+    curr_match_data_ = pd.read_csv('./in_game_data/curr_match_data.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+
+
+    # join with 'result_per_set.csv' to get the rally_count feature calculated from 'charting-m-points.csv'
+    #print('curr_match_data_.shape', curr_match_data_.shape)
+
+    result_per_set = pd.read_csv('./result_per_set.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
+
+    rally_sums = result_per_set[['match_id', 'set', 'rally_sum']]
+
+    rally_sums = rally_sums.rename(index=str, columns = {"set":"after_set"}) 
+
+    curr_match_data = pd.merge(curr_match_data_, rally_sums, how="left",on=['match_id','after_set'])
+    #print('curr_match_data.shape', curr_match_data.shape)
 
 #    temp = pd.read_csv('./match_info/match_details.csv', delimiter=",",quoting=3, error_bad_lines=False, encoding = "ISO-8859-1")
 #    print('1. temp', list( temp ))
 #    print('2. hist_data', list( hist_data ))
 #    print('3. curr_match_data', list( curr_match_data ))
-
 
     joined_data = pd.merge(hist_data, curr_match_data, how="inner",on=['match_id','player'])
     joined_data.to_csv('./final_joined_data.csv', sep=",",quoting=3, encoding = "ISO-8859-1")
