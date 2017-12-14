@@ -6,6 +6,13 @@ Stephen~R. Clarke and David Dyte.
 \newblock {\em International Transactions in Operational Research}, 7(6):585 --
   594, 2010.
 
+\bibitem{hsieh2008dual}
+Cho-Jui Hsieh, Kai-Wei Chang, Chih-Jen Lin, S~Sathiya Keerthi, and
+  Sellamanickam Sundararajan.
+\newblock A dual coordinate descent method for large-scale linear svm.
+\newblock In {\em Proceedings of the 25th international conference on Machine
+  learning}, pages 408--415. ACM, 2008.
+
 \bibitem{omalley}
 O'Malley~A. James.
 \newblock Probability formulas and statistical analysis in tennis.
