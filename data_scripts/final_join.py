@@ -66,11 +66,11 @@ def prepareHistData(d_):
            '1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff',
            'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'first_serve_perc_diff', 'duration_minutes',
            'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', #'match_result' do we need this here?
-           'same_handedness', 'svpt_diff', 'best_of']
+           'same_handedness', 'svpt_diff', 'best_of', 'p1_mday_age', 'p2_mday_age']
 
     # TODO: separate_out p1_avg_minutes_lost, p1_avg_minutes_won, p2_avg_minutes_lost, p2_avg_minutes_won 
-    col_p1 = col + ['p1_avg_minutes_lost','p1_avg_minutes_won', 'p1_avg_age_lost_to', 'p1_avg_age_won_against', 'p1_mday_age']
-    col_p2 = col + ['p2_avg_minutes_lost', 'p2_avg_minutes_won', 'p2_avg_age_lost_to', 'p2_avg_age_won_against', 'p2_mday_age']
+    col_p1 = col + ['p1_avg_minutes_lost','p1_avg_minutes_won', 'p1_avg_age_lost_to', 'p1_avg_age_won_against']
+    col_p2 = col + ['p2_avg_minutes_lost', 'p2_avg_minutes_won', 'p2_avg_age_lost_to', 'p2_avg_age_won_against']
 
     d1 = d_.copy()
     d2 = d_.copy()
@@ -100,11 +100,11 @@ def prepareHistData(d_):
     #d2.rename({"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won"}, axis='columns')
 
     d1 = d1.rename(index=str, columns = {"p1_avg_minutes_lost":"avg_minutes_lost", "p1_avg_minutes_won":"avg_minutes_won",
-                                         "p1_avg_age_lost_to":"avg_age_lost_to", "p1_avg_age_won_against":"avg_age_won_against",
-                                         "p1_mday_age": "match_day_age"})
+                                         "p1_avg_age_lost_to":"avg_age_diff_lost_to", "p1_avg_age_won_against":"avg_age_diff_won_against",
+                                         "p1_mday_age": "match_day_age", "p2_mday_age": "opponent_match_day_age"})
     d2 = d2.rename(index=str, columns = {"p2_avg_minutes_lost":"avg_minutes_lost", "p2_avg_minutes_won":"avg_minutes_won",
-                                         "p2_avg_age_lost_to":"avg_age_lost_to", "p2_avg_age_won_against":"avg_age_won_against",
-                                         "p2_mday_age": "match_day_age"})
+                                         "p2_avg_age_lost_to":"avg_age_diff_lost_to", "p2_avg_age_won_against":"avg_age_diff_won_against",
+                                         "p2_mday_age": "match_day_age", "p1_mday_age": "opponent_match_day_age"})
 
     r = pd.concat([d1, d2])
 
@@ -125,7 +125,7 @@ def main():
     print('(1/5) Processing match general information data...')
     sys.path.insert(0, './match_info/') # not a very pythonic approach, but its good enough
     import match_details
-    #match_details.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './match_info/match_details.csv')
+    match_details.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './match_info/match_details.csv')
     print('Done.')
 
     # (2)
@@ -145,7 +145,7 @@ def main():
     # Now Process the labels
     print('(4/5) Extracting labels - result per match and result per set')
     import label_match, label_set
-    #label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
+    label_match.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_match.csv')
     #label_set.run(source_dir = '../tennis_MatchChartingProject/', out_filename = './result_per_set.csv')
     print("\nDone. Output file: ./result_per_match.csv, ./result_per_set.csv")
 
@@ -183,6 +183,7 @@ def main():
 
     print("Done. Output file: ./final_joined_data.csv")
     print('joined_data.shape ' , joined_data.shape)# = (5224, 35)
+    print(list(joined_data))
     # TODO: investigate the data cleaning process. 5224 is quite low. 
 
     return
