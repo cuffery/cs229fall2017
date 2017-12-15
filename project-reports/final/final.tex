@@ -176,7 +176,8 @@ We mainly used Naive Bayes to benchmark model performance against logistic regre
 \section{Experiments, Results, Discussion}
 We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and linear SVC, for their excellent performances under our various data models. Moreover, cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. Wr compared different models using the dev set after training models on the train set; once we had the best model, we passed that through the test set for final model evaluation. 
 \subsection{Parameters, Metrics}
-TODO - add parameter justification for models (could very well be empirically based)
+For logistic regression, we chose L2 regularization with the \textit{liblinear} Algorithm \cite{hsieh2008dual} to use in the optimization solver. For small datasets, \textit{liblinear} is shown to perform really well. The penalty function makes sure that we don't overfit. 
+For SVC, we went with linear kernel after exploring multiple options such as linear, poly and rbf based on empirical performance on dev set. We also used \textit{squared hinge loss} ($\max(0,-)^2$) to penalize violated margins more strongly, based on emprical evidence on our particular dataset. Moreover, we used L2 regularization as well, as penalizing large weights tends to improve generalization (because it means that no input dimension can have a very large influence on the scores all by itself) and thus avoids overfitting. As evident by results presented below, this is part of our effort to encourage models to prefer smaller and more diffuse weight vectors (to counteract the fact that a very small subset of features account for most predictive power). The classifier is thus "encouraged" to take into account all input dimensions to small amounts rather than a few input dimensions and very strongly, ideally. 
 
 We mainly looked at \textbf{accuracy} as our success criterion, which calculates how many labels our model predicts correctly out of all the dev/test labels.  
 \subsection{How well can we predict tennis matches?}
@@ -184,18 +185,27 @@ Our best model, which uses both historical and in-game performance with SVC pred
 \begin{table}[h]
 \caption{Different Modeling Method Test Accuracy Comparison}
 \label{tab:m1}
-\begin{tabular}{ p{3cm} | c | p{2cm}}
+\begin{tabular}{ p{2.5cm} | p{2.5cm} | p{2cm}}
     \hline
     \textbf{Data Model} & \textbf{Algorithm} & \textbf{Accuracy}  \\ \hline
-   \textbf{Historical Data Only} &  Support Vector Classification with rbf kernel & 83\%  \\ \hline
+   \textbf{Historical Data Only} &  SVC with rbf kernel & 83\%  \\ \hline
    \textbf{Real-Time Data Only, After Set 1} & Logistic Regression & 81\%  \\ \hline
-   \textbf{Historical + Current Data (after Set 1)} &  Linear Support Vector Classification & 79\%  \\ \hline
-   \textbf{Historical + Current Data (after Set 2)} &  Linear Support Vector Classification & 86\% \\ \hline
+   \textbf{Historical + Current Data (after Set 1)} &  Linear Linear SVC & 79\%  \\ \hline
+   \textbf{Historical + Current Data (after Set 2)} &  Linear SVC & 86\% \\ \hline
 \end{tabular}
 \end{table}
 \subsection{Does using current, real-time info improve accuracy?}
 It does. Moreover, we found that if we are using current, real-time info, there is really no need for past performance data. The model that utilizes real-time data after the first
-set only showed accuracy on par with that plus historical data. This surprising result arises despite the fact the features from current match are fewer than historical data, which have been researched extensively. We have shown the following confusion matrices to document each data model's performance in Tables \ref{tab:h1}, \ref{tab:h2}, \ref{tab:h3}, \ref{tab:h4}: 
+set only showed accuracy on par with that plus historical data. This surprising result arises despite the fact the features from current match are fewer than historical data, which have been researched extensively. We have shown the following confusion matrices to document each data model's performance in Tables \ref{tab:h1}, \ref{tab:h2}, \ref{tab:h3}, \ref{tab:h4}. Moreover, the accuracy graph also shows how using real-time info improves accuracy in Figure~\ref{fig:acc}.
+
+Interestingly, models built on historical data only show a much greater variance when it comes to performance (we have observed accuracy from 83\% to 92\%), while models using current data are much more stable, giving accuracies in the range of $\pm1\%$. Here, we compare performance based on average values obtained from running models. 
+\begin{figure}
+\caption{Accuracy vs. Number of Features}
+  \label{fig:acc}
+  \centering
+    \includegraphics[width=0.4\textwidth]{acc}
+\end{figure}
+
 \begin{table}[h]
 \caption{Historical Only}
 \label{tab:h1}
@@ -238,46 +248,49 @@ set only showed accuracy on par with that plus historical data. This surprising 
 \end{table}
 
 \subsection{What features are the most predictive?}
-\textbf{TTL} (total points won) thus far in the game: This is computed using recursive feature elimination across our data models and different prediction model. Adding more features only leads to minimal improvement at best. In most case, having \textbf{TTL} alone almost always yields the best performance. Other top features include: \textbf{RCV} (\% of return points won) from real-time data, \textbf{BPP} (breaking point saving \%) if only historical performance data are used as features
-
-TODO - insert RFE graphs
+\textbf{TTL} (total points won), which indicates how many points one player has won in the match up till our cut-off point (either after Set 1 or 2, depending on the run), is the most important feature by miles: This result is computed using recursive feature elimination across our data models and different prediction model. Adding more features only leads to minimal improvement at best. In most case, having \textbf{TTL} alone almost always yields the best performance. Other top features include: \textbf{RCV} (\% of return points won) from real-time data, \textbf{BPP} (breaking point saving \%) if only historical performance data are used as features. 
+Because of suspected collinearity and overfittng, we wanted to make sure we don't consider all features, but really understand how performance changes as we go from the most predictive feature to the least predictive feature. Since we are using logistic regression and linear SVC mainly, we looked at recursive feature elimination to find the optimal number of features (by recursively considering smaller and smaller sets of features). The graphs of how accuracy changes with number of features are included below in Figure~\ref{fig:rfe}; notice how it drops over time due to L2 regularization present in both algorithms. 
+\begin{figure}
+\caption{Accuracy vs. Number of Features}
+  \label{fig:rfe}
+  \centering
+    \includegraphics[width=0.4\textwidth]{acc2}
+\end{figure}
 
 \subsection{Diagnostics}
-We observed the problem of \textbf{high bias} (high training error; Small gap between training and test error) after plotting the learning curves below:
-TODO - insert graphs
+We observed the problem of \textbf{high bias} (high training error; Small gap between training and test error) after plotting the learning curves in Figures~\ref{fig:lr} and \ref{fig:lsvc}. 
+\begin{figure}[h]
+\caption{Logistic Regression Learning Curve}
+  \label{fig:lr}
+  \centering
+    \includegraphics[width=0.4\textwidth]{lr_lc1}
+\end{figure}
 
-In order to combat high bias, we turn to other, additional features as this is the best solution outlined in Andrew Ng's error analysis slides. As the result shown, once real time data of a tennis match is available, the prediction result is largely dominated by one feature: \textbf{TTL}, or total points won, which indicates how many points one player has won in the match up till our cut-off point (either after Set 1 or 2, depending on the run). Although many other features are available in our real time data, the model learned that the information contained in other additional features (such as number of double faults or aces, etc.) is generally captured by \textbf{TTL}.  Hence, in order to get a more accurate prediction, we need to find features that are complement to \textbf{TTL}, revealing information that could let to a "come back" even if the player is at the moment behind.
+\begin{figure}[h]
+\caption{Linear SVC Learning Curve}
+  \label{fig:lsvc}
+  \centering
+    \includegraphics[width=0.4\textwidth]{lsvc_lc1}
+\end{figure}
+
+To combat high bias, we turn to unimplemented new features as this is the best solution outlined in Andrew Ng's error analysis slides. Despite other available features, our models learned that the information contained in other additional features (such as number of double faults or aces, etc.) is mostly already captured by \textbf{TTL}.  Therefore, we need to find features that are complement to \textbf{TTL}, revealing information that could let to a "come back" even if the player is at the moment behind, in order to get a more accurate prediction.
  
-Two additional features that we added for this purpose were: \begin{enumerate}
-\item \textbf{duration win/loss rate}: We first calculate the average duration (in minutes) of the past matches each player won or lost respectively, using the Common Opponent Model as described before, then calculate the difference of this historical data. When predicting the result of a new match, we divide the difference by the elapsed time of the match that we are trying to predict. 
+Two features that we added after the poster session for this purpose were: \begin{enumerate}
+\item \textbf{duration win/loss rate}: calculated as the average difference in duration (in minutes) of the past matches each player won or lost respectively, using the Common Opponent Model. When predicting the result of a new match, we divide the difference by the elapsed time of the match that we are trying to predict. 
 \item \textbf{age diff win/loss rate}: For this feature, we calculate the average age difference of the past matches each player won or lost respectively, using the Common Opponent Model. Then, when predicting a new match, we divide the difference by the age difference between the two players in the match that we are trying to predict.
 \end{enumerate}
-\subsection{Historical, Match-level Dataset: Logistic Regression Model}
-Applying a train-test split of 2:1, we trained a logistic regression model on $\frac{2}{3}$ of all the ATP matches from 2012. Following the labeling from Section~\ref{sec:label}, we set $label = 1$ for all the matches with Player 1 being the Winner (notation-only), and then duplicated the entire dataset but swapped Player 1 and Player 2 and set $label = 0$, as well as inverted all difference features.
 
-We achieved an impressive accuracy rate of 87.8\% just using the historical, match-level dataset with common opponent model and difference variables. 
-
-\subsection{Historical, Match-level Dataset: Naive Bayes Classifier}
-We also ran the data through a Gaussian-based Naive Bayes classifier, which showed an impressive 86.9\% accuracy rate (misclassifying 718 points out of 5496). As expected, it was also extremely fast. The impressive performance indicates that the extracted features might indeed be conditionally independent of each other, which is something we never thought of before, and look to explore in the next steps. On a first glance, it seems to suggest that given Player $i$ won the match, his/her performance on aces and rank point difference or double faults are indeed almost independent. We were surprised by the results, and more sanity check is needed before we put ourselves behind this. 
-\subsection{Real-time, Set-level Dataset: Logistic Regression Model}
-Additional analysis were done on real-time, set-level data using features listed in Table~\ref{tab:features2}. We separate our data into two groups: (1) features calculated from performance after 1st set, (2) features calculated from performance after 2nd set.  Our hypothesis is that parameters trained on the second group has higher accuracy, since more information regarding the match is known.  Our model support this hypothesis.  Accuracy on test set for (1) is 77.8\%, for (2) is 83.9\%.  The difference in accuracy between training and testing set is less than 1\%, which suggests we do not have an under-fitting problem.
-\subsubsection{Error Analysis}
-Same error analysis was done on the logistic model.  We found that the most important features are: \textbf{W2SP} and \textbf{FSP}.
-\subsection{Real-time, Set-level Dataset:  SVM}
-In addition, we ran the data through a SVM model for the same comparison as logistic regression analysis.  We found that while train accuracy increased by around 1\%, test accuracy are about 10\%  lower for (1) and (2).  This suggest for SVM may be overfitting the dataset, we will need to do \textbf{feature selection} for SVM.
-
+However, after adding these two features, we realized on the historical data only data model benefited, with better accuracy achieved when using SVC with a rbf kernel. 
 %----------------------------------------------------------------------------------------
 %	Conclusion
 %----------------------------------------------------------------------------------------
 \section{Future Work}
-There are multiple features that we think will improve the model accuracy, but did not include them in our training due to time constraints and limitations in data availability. Such features include: the (relative) importance of tournament/match for the player, number of matches player shad in the days before this match (as a proxy for fatigue), the tightness in schedule/intensity of those matches, number of matches the player played before in similar environment (location, weather, surface), etc.
+For future work, there are still unimplemented features that we think will improve the model accuracy, such as: the (relative) importance of tournament/match for the player, number of matches player shad in the days before this match (as a proxy for fatigue), the tightness in schedule/intensity of those matches, number of matches the player played before in similar environment (location, weather, surface), etc.
 \section{Conclusion}
 The use of common opponent model and difference variables already offer high predictive power in simple machine learning models such as logistic regression and Naive Bayes, and it's insightful to learn that for real-time prediction, total points won from before can really tell who is more likely to win, and a player's performance when faced with break points directly indicates his chance of winning. We also learnt that when making in-game prediction with 1st set performance data, historical performance data do not increase accuracy - i.e. most players actually do get "fresh starts".  Moreover, when in-game data are introduced, accuracy and precision both improved. We also showed that high bias is the main issue for tennis prediction models, and any future model should take this into consideration. 
 %----------------------------------------------------------------------------------------
 %	Section Contributions
 %----------------------------------------------------------------------------------------
-\section{Appendix}
-Real appendix goes here, takes page count
 
 \section{Contributions}
 \subsection{Yang "Eddie" Chen}
