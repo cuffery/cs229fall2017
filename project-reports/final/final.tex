@@ -174,17 +174,77 @@ We mainly used Naive Bayes to benchmark model performance against logistic regre
 %----------------------------------------------------------------------------------------
 
 \section{Experiments, Results, Discussion}
-We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and linear SVC, for their excellent performances under our various data models. Moreover, cross-validation ($10-fold$) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. Wr compared different models using the dev set after training models on the train set; once we had the best model, we passed that through the test set for final model evaluation. 
-\subsection{Parameters}
-TODO
+We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and linear SVC, for their excellent performances under our various data models. Moreover, cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. Wr compared different models using the dev set after training models on the train set; once we had the best model, we passed that through the test set for final model evaluation. 
+\subsection{Parameters, Metrics}
+TODO - add parameter justification for models (could very well be empirically based)
+
+We mainly looked at \textbf{accuracy} as our success criterion, which calculates how many labels our model predicts correctly out of all the dev/test labels.  
 \subsection{How well can we predict tennis matches?}
-Our best model, which uses both historical and in-game performance with SVC predicts with $88\%$ accuracy on dev set when 2 sets have been played
+Our best model, which uses both historical and in-game performance with SVC predicts with $88\%$ accuracy on dev set when 2 sets have been played. The detailed performance comparison of each data method (with best performing machine learning algorithm) can be seen in Table~\ref{tab:m1}
+\begin{table}[h]
+\caption{Different Modeling Method Accuracy Comparison}
+\label{tab:m1}
+\begin{tabular}{ p{3cm} | c | p{2cm}}
+    \hline
+    \textbf{Data Model} & \textbf{Algorithm} & \textbf{Accuracy}  \\ \hline
+   \textbf{Historical Data Only} &  4 & 5\%  \\ \hline
+   \textbf{Real-Time Data Only, After Set 1} &  4 & 5\%  \\ \hline
+   \textbf{Historical + Current Data (after Set 1)} &  4 & 5\%  \\ \hline
+   \textbf{Historical + Current Data (after Set 2)} &  4 & 5\%  \\ \hline
+\end{tabular}
+\end{table}
 \subsection{Does using current, real-time info improve accuracy?}
-TODO
+It does. Moreover, we found that if we are using current, real-time info, there is really no need for past performance data. The model that utilizes real-time data after the first
+set only showed accuracy on par with that plus historical data. This surprising result arises despite the fact the features from current match are fewer than historical data, which have been researched extensively. We have shown the following confusion matrices to document each data model's performance in Tables \ref{tab:h1}, \ref{tab:h2}, \ref{tab:h3}, \ref{tab:h4}: 
+\begin{table}[h]
+\caption{Historical Only}
+\label{tab:h1}
+\begin{tabular}{ c | c | c}
+    \hline
+    & \textbf{TRUE} & \textbf{FALSE}  \\ \hline
+   \textbf{POSITIVE} &  4 & 5  \\ \hline
+   \textbf{NEGATIVE} & 7 & 8  \\ \hline
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\caption{Real-Time Data After Set 1}
+\label{tab:h2}
+\begin{tabular}{ c | c | c}
+    \hline
+    & \textbf{TRUE} & \textbf{FALSE}  \\ \hline
+   \textbf{POSITIVE} &  4 & 5  \\ \hline
+   \textbf{NEGATIVE} & 7 & 8  \\ \hline
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\caption{Historical + After Set 1}
+\label{tab:h3}
+\begin{tabular}{ c | c | c}
+    \hline
+    & \textbf{TRUE} & \textbf{FALSE}  \\ \hline
+   \textbf{POSITIVE} &  4 & 5  \\ \hline
+   \textbf{NEGATIVE} & 7 & 8  \\ \hline
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\caption{Historical + After Set 2}
+\label{tab:h4}
+\begin{tabular}{ c | c | c}
+    \hline
+    & \textbf{TRUE} & \textbf{FALSE}  \\ \hline
+   \textbf{POSITIVE} &  4 & 5  \\ \hline
+   \textbf{NEGATIVE} & 7 & 8  \\ \hline
+\end{tabular}
+\end{table}
+
 \subsection{What features are the most predictive?}
-TODO
+\textbf{TTL} (total points won) thus far in the game: This is computed using recursive feature elimination across our data models and different prediction model. Adding more features only leads to minimal improvement at best. In most case, having \textbf{TTL} alone almost always yields the best performance. Other top features include: \textbf{RCV} (\% of return points won) from real-time data, \textbf{BPP} (breaking point saving \%) if only historical performance data are used as features
+
+TODO - insert RFE graphs
+
 \subsection{Diagnostics}
-TODO
+We observed the problem of \textbf{high bias} (high training error; Small gap between training and test error) after plotting the learning curves below:
+TODO - insert graphs
 
 In order to combat high bias, we turn to other, additional features as this is the best solution outlined in Andrew Ng's error analysis slides. As the result shown, once real time data of a tennis match is available, the prediction result is largely dominated by one feature: \textbf{TTL}, or total points won, which indicates how many points one player has won in the match up till our cut-off point (either after Set 1 or 2, depending on the run). Although many other features are available in our real time data, the model learned that the information contained in other additional features (such as number of double faults or aces, etc.) is generally captured by \textbf{TTL}.  Hence, in order to get a more accurate prediction, we need to find features that are complement to \textbf{TTL}, revealing information that could let to a "come back" even if the player is at the moment behind.
  
