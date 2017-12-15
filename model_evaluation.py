@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 import operator
+import warnings
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
@@ -211,7 +212,6 @@ def getData(diff):
 
 def getAccAlg(feature,label):
     #return best model
-
     accuracy = {}
     model = {}
     #Using RFE with logistic regression to get top 15 features 
@@ -251,7 +251,7 @@ def getAccAlg(feature,label):
     accuracy[key] = score.mean()
     print('SVC + rbf kernel',score.mean())
     
-    '''
+    
     model = svm.getSVCModel(feature_t,label,ker = 'poly')
     score = model_selection.getCrossValScore(model,feature_t,label,5)
     key = 'SVC + poly kernel'
@@ -263,7 +263,7 @@ def getAccAlg(feature,label):
     key = 'SVC + linear kernel'
     accuracy[key] = score.mean()
     print('SVC + linear kernel',score.mean())
-    '''
+    
     #Naive Bayes
     #Using top 15 features
     model = GaussianNB()
@@ -298,14 +298,14 @@ def getAccAlg(feature,label):
     key = 'Naive Bayes with all features'
     accuracy[key] = score.mean()
     print('Naive Bayes with all features',score.mean())
-    '''
+    
     #Gaussian Discriminant Analysis
     model = QuadraticDiscriminantAnalysis()
     score = model_selection.getCrossValScore(model,feature,label,5)
     key = 'Quad discriminant anlysis with all features'
     accuracy[key] = score.mean()
     print('Quad discriminant anlysis with all features',score.mean())
-    '''
+    
     #Linear Gaussian Discriminant Analysis
     model = LinearDiscriminantAnalysis()
     score = model_selection.getCrossValScore(model,feature,label,5)
@@ -320,6 +320,8 @@ def getAccAlg(feature,label):
 
 
 def main():
+    warnings.filterwarnings("ignore", category=Warning)
+
     hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff','avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of']
     curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','match_day_age','opponent_match_day_age','rally_sum']
     
@@ -340,17 +342,19 @@ def main():
     
     getAccAlg(feature,label)
 
-    #best model is Linear discriminant anlysis with all features
+    #best model is LinearSVC
     model = LinearSVC()
-    feature = data_split['after_set_1_all_train'].drop(['label'],axis = 1)
-    label = data_split['after_set_1_all_train']['label']
-    model.fit(feature,label)
+    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe.fit(feature,label)
+    feature_t = rfe.transform(feature)
+
+    model.fit(feature_t,label)
 
     test = data_split['test']
     feature_test = test[test['after_set']==1].drop(['label','after_set'],axis = 1)
     label_test = test[test['after_set']==1]['label']
 
-    print('Test score = ',model.score(feature_test,label_test))
+    print('Test score = ',model.score(rfe.transform(feature_test),label_test))
 
     #Using hist + after 2nd set
     print('-----Data model: using current + after 2nd set-----')
@@ -362,10 +366,6 @@ def main():
 
     #best model is linear SVC
     model = LinearSVC()
-
-    feature = data_split['after_set_2_all_train'].drop(['label'],axis = 1)
-    label = data_split['after_set_2_all_train']['label']
-
     rfe = model_selection.getRFE(LinearSVC(),15)
     rfe.fit(feature,label)
     feature_t = rfe.transform(feature)
@@ -389,9 +389,6 @@ def main():
     #best model is SVC + rbf kernel
     model = SVC(kernel = 'rbf')
 
-    feature = data_split['all_train'][hist]
-    label = data_split['all_train']['label']
-
     rfe = model_selection.getRFE(LinearSVC(),15)
     rfe.fit(feature,label)
     feature_t = rfe.transform(feature)
@@ -413,12 +410,9 @@ def main():
 
     #best model is linear discriminant analysis with feature size = 15
 
-    model = LinearDiscriminantAnalysis()
+    model = LogisticRegression()
 
-    feature = data_split['all_train'][curr]
-    label = data_split['all_train']['label']
-
-    rfe = model_selection.getRFE(LinearSVC(),15)
+    rfe = model_selection.getRFE(LogisticRegression(),15)
     rfe.fit(feature,label)
     feature_t = rfe.transform(feature)
 

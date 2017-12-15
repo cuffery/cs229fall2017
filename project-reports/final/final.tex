@@ -182,15 +182,15 @@ We mainly looked at \textbf{accuracy} as our success criterion, which calculates
 \subsection{How well can we predict tennis matches?}
 Our best model, which uses both historical and in-game performance with SVC predicts with $88\%$ accuracy on dev set when 2 sets have been played. The detailed performance comparison of each data method (with best performing machine learning algorithm) can be seen in Table~\ref{tab:m1}
 \begin{table}[h]
-\caption{Different Modeling Method Accuracy Comparison}
+\caption{Different Modeling Method Test Accuracy Comparison}
 \label{tab:m1}
 \begin{tabular}{ p{3cm} | c | p{2cm}}
     \hline
     \textbf{Data Model} & \textbf{Algorithm} & \textbf{Accuracy}  \\ \hline
-   \textbf{Historical Data Only} &  4 & 5\%  \\ \hline
-   \textbf{Real-Time Data Only, After Set 1} &  4 & 5\%  \\ \hline
-   \textbf{Historical + Current Data (after Set 1)} &  4 & 5\%  \\ \hline
-   \textbf{Historical + Current Data (after Set 2)} &  4 & 5\%  \\ \hline
+   \textbf{Historical Data Only} &  Support Vector Classification with rbf kernel & 83\%  \\ \hline
+   \textbf{Real-Time Data Only, After Set 1} & Logistic Regression & 81\%  \\ \hline
+   \textbf{Historical + Current Data (after Set 1)} &  Linear Support Vector Classification & 79\%  \\ \hline
+   \textbf{Historical + Current Data (after Set 2)} &  Linear Support Vector Classification & 86\% \\ \hline
 \end{tabular}
 \end{table}
 \subsection{Does using current, real-time info improve accuracy?}
