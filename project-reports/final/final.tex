@@ -82,67 +82,68 @@
 %	Section 1 Motivation
 %----------------------------------------------------------------------------------------
 \begin{abstract}
-Our abstract goes here... TO DO
+Sports bring unpredictability and a lucrative betting industry trying to predict the unpredictable. While past work on predicting outcome for tennis matches focused on pre-game prediction using historical data, this project adopts an innovative data model by combining both historical performance data and real-time player in-game stats, and apply machine learning to predict tennis match outcome in-game - namely, after the 1st set and after the 2nd set. This project explores and compares four data models: (1) historical data only (pre-game prediction; baseline), (2) current after set 1 data only (in-game prediction), (3) historical + current after set 1 data (in-game prediction), and (4) historical + current after set 2 data (in-game prediction), with various machine learning techniques such as logistic regression, support vector classification (SVC) with linear, rbf and poly kernels, neural network, and Naive Bayes. Feature selection techniques such as recursive feature elimination, and principal component analysis were employed as well. W`e find that historical performance data do not increase accuracy when making in-game prediction with 1st set performance data, and in fact accuracy and precision both improved when in-game data are introduced. More importantly, a thorough analysis on results was done to reveal and understand the predominant challenge in this data model - high bias, as our collected feature set does not cover edge cases. \textbf{TTL} (total points won) is found to be the most dominant and predictive feature, with other standout features also revealed. From there, the project outlines the future work needed to combat the high bias issue by proposing other features that could be used but not included in the current project. 
 \end{abstract}
 
 \section{Introduction}
-In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002.  Based on past performance alone, any model would have predicted a Federer win in` pre-game bets. This motivates us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time information.
+In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002.  Based on past performance alone, almost any model would have predicted a Federer win in pre-game bets. This motivates us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time, in-game information.
 %----------------------------------------------------------------------------------------
 %	Section - Method
 %----------------------------------------------------------------------------------------
 
 \section{Related Work}
-Research has been done on tennis as it is an ideal candidate for using a hierarchical probability model as a match consists of a sequence of sets, which in turn consist of a sequence of games, which in turn consist of a sequence of points.  Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc). Utilizing existing data and building on top of existing research such as Sipko \cite{tennis1}, Clarke and Dyte \cite{Clarke2010} and Knottenbelt \cite{KNOTTENBELT20123820}, our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
+Extensive research has been done on tennis as it is an ideal candidate for using hierarchical probability models: a match consists of a sequence of sets, which in turn consist of several games, which in turn consist of a sequence of points. Knottenbelt \cite{KNOTTENBELT20123820} proposed a common opponent model to extract features between two players that is found to be very predcitve in his stochastic models, while James \cite{omalley} has done thorough study on probability Formulas and statistical analysis on tennis matches. Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc), such as Sipko \cite{tennis1}, and Madurska \cite{tennis2setbyset} - whose by-set method inspired us as well. 
+
+Our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
 %----------------------------------------------------------------------------------------
 %	Section - Method
 %----------------------------------------------------------------------------------------
 
 \section{Dataset and Features}
-\subsection{Dataset}
-We are using two datasets, \cite{tennis_atp} and \cite{tennis_charting}.  Both datasets are crowdsourced GitHub repository maintained by Jeff Sackmann.  The Match Charting Project contains set level data from 1442 matches, spanning from 1974 to 2017.  Tennis ATP contains match level data from 1969 to 2017.
+\subsection{Dataset \& pre-processing}
+This project employs two open source datasets mainly for labels and features, by Jeff Sackmann \cite{tennis_atp} and \cite{tennis_charting}. The \textit{Match Charting Project} contains set level data from 1442 matches, spanning from 1974 to 2017. \textit{Tennis ATP} dataset contains match level data from 1969 to 2017.
 \begin{itemize}
-\item \textbf{Date}: Matches from 2000 ? 2017 are used as samples (1415 matches)
-\item \textbf{Remove duplicates via match id}: Since both datasets are manually entered
-via crowdsourcing, there are some inaccuracy and duplication.
-\item \textbf{Remove Davis Cup}: Davis Cup is the World Cup" or tennis, where players play for their country.  We decided to remove all Davis Cup entry, since group matches may include strategic move that is different from individual tournaments.
-\item \textbf{Merge Tennis ATP and Match Charting Project}: prediction is made on
-Match Charting Project, where as historical performance for both players is computed from Tennis ATP. Two datasets are merged on player?s first name and last name, with players with the same names removed manually.
-\item \textbf{Feature Standardization} We are unable to extract all features listed in Sipko \cite{tennis1}.  We can extract some features from Tennis ATP but not Match Charting Project.  We will attempt to extract more features from processing the point by point data in Match Charting Project, and standardize between the historical and current performance.
-\end{itemize}
-\subsection{Features}
-\label{sec:feat}
-\subsubsection{Features from historical match performance}
-Features are the difference in average for both players with common opponent model.
-\begin{itemize}
-\item \textbf{Performance} Number of aces, double faults, break points faced and saved; Percentage of winning on first and second serve, first serve in
-\item \textbf{Match Details} Match duration, number of serve games, number of serve points per game
-\item \textbf{Player Details} ATP Rank, ATP Rank Points, same handedness, height
-\end{itemize}
-\subsubsection{Features from current match performance}
-Features are the difference in average for a snapshot in the match: after set 1 and after set 2.
-\begin{itemize}
-\item \textbf{Performance} Number of aces, double faults, winners and total points won; Percentage of winning on first and second serve, return points won, first serve in
-\item \textbf{Match Details} Surface (hard, grass, or clay), match type
-\item \textbf{Player Details} Same handedness
+\item \textbf{Date}: Matches from 2000 - 2017 are used as samples (1415 matches)
+\item \textbf{Remove duplicates via match id}: Since both datasets are manually entered via crowdsourcing, there are some inaccuracy and duplication that require our pre-processing.
+\item \textbf{Remove Davis Cup}: Davis Cup is the World Cup of tennis, where players play for their country.  We decided to remove all Davis Cup entries since group matches may include strategic moves that are considerably different from individual tournaments.
+\item \textbf{Merge Tennis ATP and Match Charting Project}: Real-time stats are obtained the \textit{Match Charting Project} dataset, whereas historical performance for both players is computed from \textit{Tennis ATP}. Two datasets are merged on player's first and last name, with players of the same names removed manually.
+\item \textbf{Feature Standardization} We are unable to extract all features listed in Sipko \cite{tennis1}.  While extracting features from \textit{Tennis ATP} was easy, the \textit{Match Charting Project} data proves much more challenging.  We managed to extract a sbset of all possible features from processing the point-by-point data in the \textit{Match Charting Project}, and standardized between the historical and current performance.
 \end{itemize}
 \subsection{Feature Extraction}
 \label{sec:label}
-Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; Real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
+Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
 \begin{enumerate}
 \item A vector of input features (\textbf{X}), describing the performance in previous set and historical performance from one player's perspective
-\item A target value (\textbf{y}), indicating the match outcome
+\item A target value (\textbf{y}), indicating the match outcome. $y \in` \{1,-1\}$
 \end{enumerate}
 \subsubsection{Symmetric Feature Representation}
-There are two approaches to represent features from two players.  First, we can have two features for the same metric ($RANK_1$ and $RANK_2$).  This approach doubles the number of features, but also provides a quantitative measure that we can compare across all players.  Second, we can represent difference between two players ($RANK_{DIFF} = RANK_1 - RANK_2$).  This would reduce the number of features, but does not allow the model to compare across players.  Previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley} for past performance (match level).  For current performance (set level), we evaluated the performance of both approaches.  There was no difference in terms of accuracy, hence the difference model was used for current match as well for consistency.
+There are two approaches to represent features from two players.  First, we can have two features for the same metric (e.g. $RANK_1$ and $RANK_2$).  This approach doubles the number of features, but also provides a quantitative measure that we can compare across all players.  Second, we can look at \textit{differences} between two players (e.g. $RANK_{DIFF} = RANK_1 - RANK_2$).  This would reduce the number of features, but does not allow the model to compare across players.  Previous research has shown that the difference variables are predictive enough \cite{tennis1} \cite{omalley} for past performance (on match level).  For current performance (on set level), we evaluated the performance of both approaches. There was no difference in terms of accuracy, hence the difference model was used for current match as well for consistency.
 \subsubsection{Common Opponent Model for Past Performance}
-We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} and extended by Sipko \cite{tennis1} to construct difference variables capturing player characteristics and past performance, by using their \textbf{common opponents} to achieve a fair comparison. 
+We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} and extended by Sipko \cite{tennis1} to construct \textit{difference variables} capturing player characteristics and past performance, by using their \textbf{common opponents} to achieve a fair comparison. The detailed code can be found in our codebase, while the process works as follows: 
 \begin{itemize}
 \item Identify a set of common opponents between the two players of a given match.
 \item Compute the average performance of both players against the common opponent.
 \item Take the difference between average performance for each extracted feature.
 \end{itemize}
 \subsubsection{Edge Cases for Common Opponents}
-We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents.  In our initial investigation, our solution is: (1) when the player is new with no historical data, we remove the samples, which is 84 samples out of 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponent) and take the difference, which is 74 out of 1421 matches. Note, as described in 2.1.Feature Extraction section, our final sample size will contain 2x * 1421 rows, where x is the number of sets played in each match.
+We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents. Upon investigation, our solution is: (1) when the player is new with no historical data, we remove the samples, which consist of 84 data points out of 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponents) and take the difference, which consist of 74 out of 1421 matches. Note, as described in Section~\ref{sec:label}, our final sample size will contain $2x * 1421$ rows, where $x$ is the number of sets played in each match.
+\subsection{Feature Lists}
+\label{sec:feat}
+\subsubsection{Features from historical match performance}
+Features are the \textit{difference variables} averaged for both players obtained from a common opponent model \cite{KNOTTENBELT20123820}, unless otherwise noted. They are:
+\begin{itemize}
+\item \textbf{Performance Features}: Number of aces, double faults, break points faced and saved; Percentages of winning on first and second serves, and first serve in rate.
+\item \textbf{Match Details}: Match duration, number of serve games, number of serve points per game
+\item \textbf{Player Bio}: ATP Rank, ATP Rank Points, same handedness, height
+\end{itemize}
+\subsubsection{Features from current match performance}
+Features are the difference in average for a snapshot in the match: after set 1, and after set 2. They are: 
+\begin{itemize}
+\item \textbf{Performance Features} Number of aces, double faults, winners and total points won; Percentage of winning on first and second serve, return points won, first serve in
+\item \textbf{Match Details} Surface (hard, grass, or clay), match type
+\item \textbf{Player Bio} Same handedness
+\end{itemize}
+
 %----------------------------------------------------------------------------------------
 %	Section - Method
 %----------------------------------------------------------------------------------------
@@ -200,9 +201,10 @@ In addition, we ran the data through a SVM model for the same comparison as logi
 %----------------------------------------------------------------------------------------
 %	Conclusion
 %----------------------------------------------------------------------------------------
-\section{Conclusion, Future Work}
-The use of common opponent model and difference variables already offer high predictive power in simple machine learning models such as logistic regression and Naive Bayes, and it's exciting to see with fine-tuning and more exploration and connecting datasets what we can achieve. It's also helpful to learn that ATP rank point difference between two players alone is already predictive of their likely match outcome. 
-
+\section{Future Work}
+There are multiple features that we think will improve the model accuracy, but did not include them in our training due to time constraints and limitations in data availability. Such features include: the (relative) importance of tournament/match for the player, number of matches player shad in the days before this match (as a proxy for fatigue), the tightness in schedule/intensity of those matches, number of matches the player played before in similar environment (location, weather, surface), etc.
+\section{Conclusion}
+The use of common opponent model and difference variables already offer high predictive power in simple machine learning models such as logistic regression and Naive Bayes, and it's insightful to learn that for real-time prediction, total points won from before can really tell who is more likely to win, and a player's performance when faced with break points directly indicates his chance of winning. We also learnt that when making in-game prediction with 1st set performance data, historical performance data do not increase accuracy - i.e. most players actually do get "fresh starts".  Moreover, when in-game data are introduced, accuracy and precision both improved. We also showed that high bias is the main issue for tennis prediction models, and any future model should take this into consideration. 
 %----------------------------------------------------------------------------------------
 %	Section Contributions
 %----------------------------------------------------------------------------------------
@@ -212,10 +214,11 @@ Real appendix goes here, takes page count
 \section{Contributions}
 \subsection{Yang "Eddie" Chen}
 \begin{itemize}
-\item Researched and reviewed relevant literature for applicable ideas, such as Clarke and Dyte \cite{Clarke2010} and O'Malley \cite{omalley} for difference variable, and Knottenbelt \cite{KNOTTENBELT20123820} for the common opponent model
+\item Researched, reviewed and synthesized relevant literature for applicable ideas and the Related Work section, such as Clarke and Dyte \cite{Clarke2010} and O'Malley \cite{omalley} for difference variable, and Knottenbelt \cite{KNOTTENBELT20123820} for the common opponent model
 \item Implemented the Common Opponent Model to look up players stats from common opponents
 \item Generated ATP Match results for labels
-\item Typsetted (\LaTeX) the project milestone report
+\item Conducted error analyses along with Yi \& Yubo to understand the root cause of our performance curve, and proposing new checks and solutions. 
+\item Typsetted (\LaTeX) the project milestone report, contributed mostly in the poster making, and typesetted \& synthesized the final report. 
 \end{itemize}
 
 \subsection{Yubo Tian}
