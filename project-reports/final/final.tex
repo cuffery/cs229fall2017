@@ -82,17 +82,17 @@
 %	Section 1 Motivation
 %----------------------------------------------------------------------------------------
 \begin{abstract}
-This project adopts an innovative data model by combining both historical match data and real-time stats, and apply machine learning to predict tennis match outcomes. This project explores and compares four data models mixing historical data and real-time stats, while applying various machine learning techniques such as logistic regression, support vector classification (SVC) with linear, RBF and polynomial kernels, and Naive Bayes classification. Feature selection techniques such as recursive feature elimination, and principal component analysis were employed as well. We find that applying SVC with a RBF kernel on historical data alone gives the best prediction. More importantly, a thorough analysis on results was done to reveal and understand the predominant challenge in this data model - high bias, as our collected feature set does not cover edge cases and "comback" situations. \textbf{TTL} (total points won) is found to be the most dominant and predictive feature for linear models, with other standout features also revealed. From there, the project outlines the future work needed to combat the high bias issue by proposing other features that could be used but not included in the current project. 
+This project adopts an innovative data model by combining both historical match data and real-time stats, and apply machine learning to predict tennis match outcomes. Specifically, we explore and compare four data models mixing historical data and real-time stats, while applying machine learning techniques such as logistic regression, support vector classification (SVC) with linear, RBF and polynomial kernels, and Naive Bayes classification. Feature selection techniques such as recursive feature elimination and principal component analysis were employed as well. We find that applying SVC with a RBF kernel on historical data alone gives the best prediction. More importantly, a thorough analysis on results was done to reveal and understand the predominant challenge in this hybrid approach - high bias, as our extracted feature set does not cover edge cases and "comback" situations. \textbf{TTL} (total points won) is found to be the most dominant and predictive feature for linear models, with other standout features also revealed. From there, the project outlines the future work needed to combat the high bias issue by proposing other features that could be used but not included in the current project. 
 \end{abstract}
 
 \section{Introduction}
-In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002.  Based on past performance alone, almost any model would have predicted a Federer win in pre-game bets. This motivates us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time, in-game information.
+In the 2017 Stuttgart Open, 18-time grand slam champion Roger Federer lost to the world No. 302 player Tommy Haas on a grass court, which hadn't happened since 2002. Based on past performance alone, almost any model would have predicted a Federer win, perhaps with large margin too. This surprise event motivated us to apply machine learning to predict tennis matches in real time; in particular, we want to apply a hybrid model that combines historical and real-time, in-game information, in an attempt to better existing predictions. 
 %----------------------------------------------------------------------------------------
 %	Section - Method
 %----------------------------------------------------------------------------------------
 
 \section{Related Work}
-Extensive research has been done on tennis as it is an ideal candidate for using hierarchical probability models: a match consists of a sequence of sets, which in turn consist of several games, which in turn consist of a sequence of points. Knottenbelt \cite{KNOTTENBELT20123820} proposed a common opponent model to extract features between two players that is found to be very predcitve in his stochastic models, while James \cite{omalley} has done thorough study on probability formulas and statistical analysis on tennis matches. Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc), such as Sipko \cite{tennis1}, and Madurska \cite{tennis2setbyset} - whose by-set method inspired us. 
+Extensive research has been done on tennis as it is an ideal sport to apply hierarchical probability models: tennis match consists of a sequence of sets, which in turn consist of several games, which in turn consist of a sequence of points. Knottenbelt \cite{KNOTTENBELT20123820} proposed a common opponent model to extract features between two players that is found to be very predcitve in his stochastic models, while James \cite{omalley} has done thorough study on probability formulas and statistical analysis on tennis matches. Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc), such as Sipko \cite{tennis1}, and Madurska\cite{tennis2setbyset} - whose by-set method inspired us. 
 
 Our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
 %----------------------------------------------------------------------------------------
@@ -154,18 +154,15 @@ We also extracted and added two more features to the models after the first pass
 As a start, we applied logistic regression on the data using Scikit-Learn's implementation\cite{scikit-learn}. The $L2$-penalized model minimizes the cost function below: $$\min_{w,c} \sum_{i=1}^n \log(e^{-y_i(X_i^Tw+c)}+1) + \frac{1}{2}w^Tw$$
 The solver implemented in the code uses a coordinate descent algorithm, and the detailed proof can be found in Hsieh 2008 \cite{hsieh2008dual}
 \subsection{Support Vector Machine}
-Next, we used a linear support vector classifier from Scikit-Learn \cite{scikit-learn} to predict the tennis match outcome. Given the training vectors $x_i \in \mathbb{R}^n$ and the label vector $y = \{1,-1\}$ where 1 represents a win and -1 represents a loss, we can formulate the support vector machine as solving the following primal problem: $$min_{w,b, \varsigma} \sum_{i=1}^n \varsigma_i + \frac{1}{2}w^Tw$$ 
+Next, we used a linear support vector classifier from Scikit-Learn \cite{scikit-learn} to predict the tennis match outcome. Given the training vectors $x_i \in \mathbb{R}^n$ and the label vector $y = \{1,-1\}$ where 1 represents a win and -1 a loss, we can formulate the support vector machine as solving the following primal problem: $$min_{w,b, \varsigma} \sum_{i=1}^n \varsigma_i + \frac{1}{2}w^Tw$$ 
 $$s.t. y_i(w^T\theta(x_i) + b) \geq 1 - \varsigma_i,    \varsigma_i \geq 0$$
 Its dual is \begin{align*}
 \min_\alpha \frac{1}{2}\alpha^TQ\alpha - e^T\alpha \\
-s.t. y^T \alpha = 0 \\
-0 \le \alpha \le 1 
+s.t. y^T \alpha = 0,  0 \le \alpha \le 1 
 \end{align*}
 where $e$ is the vector of all ones, and $Q_{i,j} = y_i y_j K(x_i, x_j)$, and $K(x_i, x_j)$ is the kernel here. We tried different kernels including linear, RBF (where $K(x_i, x_j) = exp(-\gamma||x_i - x_j||^2)$), and polynomial (where $K(x_i, x_j) = (x_i^T x_j + c)^d$), and have documented performance below in Section 5.
 \subsection{Other algorithms}
-Moreover, we implemented \textbf{Naive Bayes} as a classifier, to check the model performance. We were curious to test if Naive Bayes classifier works well; and if so, whether this indicates that the features are \textit{conditionally independent} - i.e. break point percentage, rank difference, and all other features don't really relate to each other as long as I win the matches. Given a class variable $y = \{1,-1\}$  and a dependent feature vector $x_1$ through $x_n$, Bayes’ theorem states the following relationship: $$P(y|x_1,...,x_n) = \frac{P(y)P(x_1,...,x_n|y)}{P(x_1,...,x_n)}$$
-
-In particular, we have chosen the Gaussian Naive Bayes algorithm following the assumption that $X$ with respect to $y = \{1,-1\}$ is distributed according to a Gaussian distribution. This gives us the feature likelihood as $$P(x_i | y) = \frac{1}{\sqrt{2\pi \sigma_y^2}} exp(-\frac{(x_i - \mu_y)^2}{2\sigma_y^2})$$
+Moreover, we implemented \textbf{Naive Bayes} as a classifier, to check the model performance. We were curious to test if Naive Bayes classifier works well; and if so, whether this indicates that the features are \textit{conditionally independent} - i.e. break point percentage, rank difference, and all other features don't really relate to each other as long as I win the matches. Given a class variable $y = \{1,-1\}$  and a dependent feature vector $x_1$ through $x_n$, Bayes' theorem states the following relationship: $$P(y|x_1,...,x_n) = \frac{P(y)P(x_1,...,x_n|y)}{P(x_1,...,x_n)}$$ In particular, we have chosen the Gaussian Naive Bayes algorithm following the assumption that $X$ with respect to $y = \{1,-1\}$ is distributed according to a Gaussian distribution. This gives us the feature likelihood as $$P(x_i | y) = \frac{1}{\sqrt{2\pi \sigma_y^2}} exp(-\frac{(x_i - \mu_y)^2}{2\sigma_y^2})$$
 And we use the following classification rule:
 $$\hat{y} = arg \max_y P(y) \Pi_{i=1}^n P(x_i | y)$$
 We mainly used Naive Bayes to benchmark model performance against logistic regression and SVC, as it is extremely fast to run.
@@ -176,10 +173,13 @@ We mainly used Naive Bayes to benchmark model performance against logistic regre
 %----------------------------------------------------------------------------------------
 
 \section{Experiments, Results, Discussion}
-We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and SVC, for their good performances under our various data models. Moreover, cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. We compared different models using the dev set for evaluation; once we had the best model, we passed that through the test set for a final model accuracy score. 
+We organized discussionin the following 4 questions. While a preliminary set of results were presented during the poster session, we had major overhauls in the past few days as we tried more models and fine-tuned parameters within existing algorithm choices. In particular, we found that SVC with a RBF kernel actually outperforms all our hybrid data models, albeit with a slightly bigger variance. As a result of this more thorough ad rigorous exploration, the results presented here will be different from the preliminary look from the poster session.  
+
 \subsection{Parameters, Metrics}
 For logistic regression, we chose L2 regularization with the \textit{liblinear} Algorithm \cite{hsieh2008dual} to use in the optimization solver. For small datasets, \textit{liblinear} is shown to perform really well. The penalty function makes sure that we don't overfit. 
-For SVC, we explored multiple options such as linear, poly and RBF based on empirical performance on dev set, and used \textbf{RBF} (Gaussian) kernel for historical only data model and \textbf{linear} kernel for the rest. In general, we think this choice makes sense as RBF kernels are general purpose and usually the first thing to try when we are not processing text. We also used \textbf{squared hinge loss} ($\max(0,-)^2$) to penalize violated margins more strongly, based on emprical evidence on our particular dataset. Moreover, we used \textbf{L2 regularization} as well, as penalizing large weights tends to improve generalization (because it means that no input dimension can have a very large influence on the scores all by itself) and thus avoids overfitting. As evident by results presented below, this is part of our effort to encourage models to prefer smaller and more diffuse weight vectors (to counteract the fact that a very small subset of features account for most predictive power). The classifier is thus "encouraged" to take into account all input dimensions to small amounts rather than a few input dimensions and very strongly, ideally. Lastly, we set the max iteration to 100,000 as SVM may not converge. 
+For SVC, we explored multiple options such as linear, poly and RBF based on empirical performance on dev set, and used \textbf{RBF} (Gaussian) kernel for historical only data model and \textbf{linear} kernel for the rest. In general, we think this choice makes sense as RBF kernels are general purpose and usually the first thing to try when we are not processing text. We also used \textbf{squared hinge loss} ($\max(0,-)^2$) to penalize violated margins more strongly, based on emprical evidence on our particular dataset. Moreover, we used \textbf{L2 regularization} as well, as penalizing large weights tends to improve generalization (because it means that no input dimension can have a very large influence on the scores all by itself) and thus avoids overfitting. As evident by results presented below, this is part of our effort to encourage models to prefer smaller and more diffuse weight vectors (to counteract the fact that a very small subset of features account for most predictive power). The classifier is thus "encouraged" to take into account all input dimensions to small amounts rather than a few input dimensions and very strongly, ideally. Lastly, we set the max iteration count to 100,000 as SVM may not converge. 
+
+Cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. We compared different models using the dev set for evaluation; once we had the best model, we passed that through the test set for a final model accuracy score. 
 
 We mainly looked at \textbf{accuracy} as our success criterion, which calculates how many labels our model predicts correctly out of all the dev/test labels.  We used the term "\textbf{score}" interchangeably with accuracy in this report. 
 \subsection{How well can we predict tennis matches?}
@@ -203,20 +203,21 @@ Our best model, which uses \textit{only} historical with a RBF-kernel SVC predic
    \textbf{Historical + Current Data (after Set 2)} &  Linear SVC, capped at 15 features & 86.0\%, std.dev = 3.7\% \\ \hline
 \end{tabular}
 \end{table}
-This is a surprising learning to us: using past performance alone really gives the best prediction. It also suggests that bringing in more data in the form of real-time stats actually worsens the model performance, due partly to the presence of penalty functions. However, once we bring in real-time stats after set 2, we almost have the on-par model performance again (with smaller variance). Interestingly, using real-time info reduces variances, as models built on historical data only show a greater variance compared to models using current data which are  more stable. 
+This is a surprising learning to us: using past performance alone really gives the best prediction. It also suggests that bringing in more data in the form of real-time stats actually worsens the model performance, due partly to the presence of penalty functions. However, once we bring in real-time stats after set 2, we almost have the on-par model performance again (with smaller variance). Thus, using real-time info seems to reduce variances, as models built on only historical data show a greater \textbf{variance} compared to any hybrid data models. 
+
+Given the particular kernel choice of RBF, the results generated new hypotheses for us: could it mean that tennis match features, at least those we extracted, are not linearly separable but become separable on a higher dimension? Is using hinge loss strictly better than logistic loss? Our findings land support to these initial guesses that we can extend in our future work, to understand more about tennis match data. 
 \subsection{Does using current, real-time info improve accuracy?}
-No, it does not. We have shown the following confusion matrices to document data model's performance in Tables \ref{tab:h1}, \ref{tab:h4}. 
+No, it does not. Historical data alone, when coupled with SVC on RBF kernel, gives by far the best performance in all our runs. We have included confusion matrices below to to further compare performances (Tables \ref{tab:h1}, \ref{tab:h4}). 
 \begin{table}[h]
 \caption{Historical Only}
 \label{tab:h1}
-\begin{tabular}{ c | c | c}
+\begin{tabular}{ l | l | l}
     \hline
     & \textbf{TRUE} & \textbf{FALSE}  \\ \hline
    \textbf{POSITIVE} &  52.7\% & 0.1\%  \\ \hline
    \textbf{NEGATIVE} & 47.1\% & 0.1\%  \\ \hline
 \end{tabular}
 \end{table}
-
 \begin{table}[h]
 \caption{Historical + After Set 2}
 \label{tab:h4}
@@ -229,34 +230,31 @@ No, it does not. We have shown the following confusion matrices to document data
 \end{table}
 
 \subsection{What features are the most predictive, for linear models?}
-Using recursive feature elimination across our data models and linear algorithms, we find that \textbf{TTL} (total points won), which indicates how many points one player has won in the match up till our cut-off point (either after Set 1 or 2, depending on the run), is the most important feature by a wide margin. Adding more features only leads to minimal improvement at best. In most case, having \textbf{TTL} alone almost always yields the best performance. Other top features include: \textbf{RCV} (\% of return points won) from real-time data, \textbf{BPP} (breaking point saving \%) if only historical performance data are used as features. 
-Because of suspected collinearity and overfittng, we wanted to make sure we don't consider all features, but really understand how performance changes as we go from the most predictive feature to the least predictive feature. Since we are using logistic regression and linear SVC mainly, we looked at recursive feature elimination to find the optimal number of features (by recursively considering smaller and smaller sets of features). The graphs of how accuracy changes with number of features are included below in Figure~\ref{fig:rfe}; notice how it drops over time due to L2 regularization present in both algorithms. 
-
+Using recursive feature elimination (RFE) across our data models and linear algorithms, we find that \textbf{TTL} (total points won), which indicates how many points one player has won in the match up till our cut-off point, is the most important feature. Adding more features only leads to minimal improvement at best, for linear algorithms. In most cases, having \textbf{TTL} alone almost always yields the best performance, especially with penalty function enabled. Other top features include: \textbf{RCV} (\% of return points won) from real-time data, \textbf{BPP} (breaking point saving \%) if only historical match data are used. 
+The graphs of how accuracy changes with number of features are included below in Figure~\ref{fig:rfe}; notice how it drops over time due to L2 regularization in both methods. 
 
 \subsection{Diagnostics}
-Drilling deep into our model performance, we observed the problem of \textbf{high bias} (high training error; Small gap between training and test error) after plotting the learning curves in Figure~\ref{fig:svm} and corroborated by Figure~\ref{fig:lsvc}. 
+While fine-tuning our hybrid data models (in an effort to beat historical only data model), we observed the problem of \textbf{high bias} manifested as the small gap between training and test errors after plotting the learning curves for logistic regression model in Figure~\ref{fig:lg}, corroborated by learning curves from linear SVC in Figure~\ref{fig:lsvc}. 
 \begin{figure}[h]
-\caption{SVM Learning Curve}
-  \label{fig:svm}
+\caption{Logistic Regression Learning Curve}
+  \label{fig:lg}
   \centering
-    \includegraphics[width=0.4\textwidth]{svm_lc1}
+    \includegraphics[width=0.4\textwidth]{lr_lc2}
 \end{figure}
 
 \begin{figure}[h]
 \caption{Linear SVC Learning Curve}
   \label{fig:lsvc}
   \centering
-    \includegraphics[width=0.4\textwidth]{lsvc_lc1}
+    \includegraphics[width=0.4\textwidth]{lsvc_lc2}
 \end{figure}
 
-To combat high bias, we turn to unimplemented new features as this is the best solution outlined in Andrew Ng's error analysis slides. Despite other available features, our models learned that the information contained in other additional features (such as number of double faults or aces, etc.) is mostly already captured by \textbf{TTL}.  Therefore, we need to find features that are complement to \textbf{TTL}, revealing information that could let to a "come back" even if the player is at the moment behind, in order to get a more accurate prediction.
- 
-Two features that we added after the poster session for this purpose were: \begin{enumerate}
-\item \textbf{duration win/loss rate}: calculated as the average difference in duration (in minutes) of the past matches each player won or lost respectively, using the Common Opponent Model. When predicting the result of a new match, we divide the difference by the elapsed time of the match that we are trying to predict. 
-\item \textbf{age diff win/loss rate}: For this feature, we calculate the average age difference of the past matches each player won or lost respectively, using the Common Opponent Model. Then, when predicting a new match, we divide the difference by the age difference between the two players in the match that we are trying to predict.
+To combat high bias, we turn to unimplemented new features as this is the best solution outlined in Andrew Ng's error analysis slides. Despite other available features, our models learned that the information contained in other additional features (such as number of double faults or aces, etc.) is mostly already captured by \textbf{TTL}.  Therefore, we need to find features that are complementary to \textbf{TTL}, revealing information that could let to a "comeback" even if the player is at the moment behind, in order to get a more accurate prediction. Naturally, we think of a player's endurance and resillience, and look for features that could reflect similar traits. The two features added after the poster session for this purpose were: \begin{enumerate}
+\item \textbf{duration win/loss rate}: Average duration of games won - average duration of games lost
+\item \textbf{age diff win/loss rate}: Average age of opponent beaten - average age of opponent lost to
 \end{enumerate}
 
-However, after adding these two features, we realized only the historical data model benefited slightly, with a marginally better accuracy rate achieved using SVC with a RBF kernel. When used with other algorithms, we do not observe any change in performance or top features' relative ranking. 
+However, we realized only the historical data model benefited slightly after adding these two features, using the original "best" algorithm. We do not observe any change in performance or top features' relative rankings when using other algorithms.
 %----------------------------------------------------------------------------------------
 %	Conclusion
 %----------------------------------------------------------------------------------------
@@ -270,6 +268,7 @@ The use of common opponent model and difference variables already offer high pre
 \section{Appendix}
 \subsection{Results: Dev set score for all algorithms}
 \label{sec:app}
+Values subject to random seed and fluctuations. 
 \begin{itemize}
 \item \textbf{Historical data only}: logistic 0.705, linear SVC 0.512, SVC + RBF kernel for 15 features 0.869, SVC + poly kernel for 15 features 0.455, SVC + linear kernel for 15 features 0.583, \textbf{SVC + RBF kernel for all features 0.891}, SVC + poly kernel for all features 0.476, SVC + linear kernel for all features 0.470, Naive Bayes with 15 features 0.676, Naive Bayes with all features 0.673
 \item \textbf{Real-time data only}: \textbf{logistic 0.786}, linear SVC 0.606, SVC + RBF kernel for 15 features 0.642, SVC + poly kernel for 15 features 0.529, SVC + linear kernel for 15 features 0.663, SVC + RBF kernel for all features 0.642, SVC + poly kernel for all features 0.529, SVC + linear kernel for all features 0.663, Naive Bayes with 15 features 0.786, Naive Bayes with all features 0.786
