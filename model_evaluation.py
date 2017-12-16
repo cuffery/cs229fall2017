@@ -417,11 +417,6 @@ def main():
         #get learning curve
         train_sizes, train_scores, valid_scores = learning_curve(model, feature, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
 
-        # debug code2
-        print(train_scores)
-        print(valid_scores)
-        # end debug code2
-
         plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_hist.png', 2)
 
         model.fit(feature,label)
