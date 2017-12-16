@@ -53,14 +53,21 @@ def plot_learning_curve(train_sizes, train_scores, test_scores, filename, debug)
 
     return
 
-def get_learning_curve_plots(data_split,num_features):    
+def get_learning_curve_plots(data_split,num_features):  
+    
+    #get learning curve plots for linear svc  
+    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff','avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of']
+    curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','match_day_age','opponent_match_day_age','rally_sum']
+
     after_set_1_all_train = data_split['after_set_1_all_train']
     after_set_2_all_train = data_split['after_set_2_all_train']
+    all_train = data_split['all_train']
 
     all_train = data_split['all_train']
     test = data_split['test']
-
+    
     drop_col = ['label']
+    '''
     y = after_set_1_all_train['label']
     X = after_set_1_all_train.drop(drop_col,axis = 1).dropna(axis=0, how='any')
 
@@ -92,6 +99,22 @@ def get_learning_curve_plots(data_split,num_features):
     print("train_scores_lr\n", train_scores_lr)
     print("valid_scores_lr\n", valid_scores_lr)
     plot_learning_curve(train_sizes_lr, train_scores_lr, valid_scores_lr, 'LR_learning_curve.png', 3)
+    '''
+
+    drop_col = ['label']
+    y = all_train['label']
+    X = all_train[hist]
+
+    rfe = model_selection.getRFE(LinearSVC(),num_features)
+    rfe = rfe.fit(X,y)
+
+
+    train_sizes, train_scores, valid_scores = learning_curve(SVC(), rfe.transform(X), y, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+
+    print("train_sizes_lr\n", train_sizes)
+    print("train_scores_lr\n", train_scores)
+    print("valid_scores_lr\n", valid_scores)
+    plot_learning_curve(train_sizes, train_scores, valid_scores, 'hist_linearsvc_learning_curve.png', 3)
     return
 
 def outputRanking(model,feature, label,filename):
@@ -114,8 +137,8 @@ def getData(diff):
     drop_new_col = ['avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of','match_day_age','opponent_match_day_age','rally_sum']
     data = data.drop(drop_new_col,axis = 1).dropna(axis=0, how='any')
     '''
-    all_train, test = train_test_split(data, test_size=0.20, random_state=520)
-    train, dev = train_test_split(all_train, test_size=0.25, random_state=520)
+    all_train, test = train_test_split(data, test_size=0.20, random_state=521)
+    train, dev = train_test_split(all_train, test_size=0.25, random_state=521)
 
     after_set_1_all_train = all_train[all_train['after_set']==1].drop(drop_col,axis = 1).dropna(axis=0, how='any')
     after_set_2_all_train = all_train[all_train['after_set']==2].drop(drop_col,axis = 1).dropna(axis=0, how='any')
@@ -180,26 +203,47 @@ def getAccAlg(feature,label):
     accuracy[key] = score.mean()
     print('linear SVC',score.mean())
     
-    #SVC with different kernel
+    #SVC with different kernel with top 15 features
     model = svm.getSVCModel(feature_t,label,ker = 'rbf')
     score = model_selection.getCrossValScore(model,feature_t,label,5)
-    key = 'SVC + rbf kernel'
+    key = 'SVC + rbf kernel for 15 features'
     accuracy[key] = score.mean()
-    print('SVC + rbf kernel',score.mean())
+    print('SVC + rbf kernel for 15 features',score.mean())
     
     
     model = svm.getSVCModel(feature_t,label,ker = 'poly')
     score = model_selection.getCrossValScore(model,feature_t,label,5)
-    key = 'SVC + poly kernel'
+    key = 'SVC + poly kernel for 15 features'
     accuracy[key] = score.mean()
-    print('SVC + poly kernel',score.mean())
+    print('SVC + poly kernel for 15 features',score.mean())
     
     model = svm.getSVCModel(feature_t,label,ker = 'linear')
     score = model_selection.getCrossValScore(model,feature_t,label,5)
-    key = 'SVC + linear kernel'
+    key = 'SVC + linear kernel for 15 features'
     accuracy[key] = score.mean()
-    print('SVC + linear kernel',score.mean())
+    print('SVC + linear kernel for 15 features',score.mean())
+
+    #SVC with different kernel with all features
+    model = svm.getSVCModel(feature_t,label,ker = 'rbf')
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'SVC + rbf kernel for all features'
+    accuracy[key] = score.mean()
+    print('SVC + rbf kernel for all features',score.mean())
     
+    
+    model = svm.getSVCModel(feature_t,label,ker = 'poly')
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'SVC + poly kernel for all features'
+    accuracy[key] = score.mean()
+    print('SVC + poly kernel for all features',score.mean())
+    
+    model = svm.getSVCModel(feature_t,label,ker = 'linear')
+    score = model_selection.getCrossValScore(model,feature,label,5)
+    key = 'SVC + linear kernel for all features'
+    accuracy[key] = score.mean()
+    print('SVC + linear kernel for all features',score.mean())
+    
+
     #Naive Bayes
     #Using top 15 features
     model = GaussianNB()
@@ -258,23 +302,21 @@ def getAccAlg(feature,label):
 def main():
     warnings.filterwarnings("ignore", category=Warning)
 
-    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff','avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of']
+    hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff','avg_minutes_lost','avg_minutes_won','avg_age_diff_lost_to','avg_age_diff_won_against','best_of']
     curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct','match_day_age','opponent_match_day_age','rally_sum']
     
     data_split = getData(diff = False)
     print(list(data_split['train']))
-    i = 0
+    i = 24
 
+    #get_learning_curve_plots(data_split,15)
+    #raise Exception()
     result_model_hist = []
     result_model_curr = []
     result_model_hist_curr1 = []
     result_model_hist_curr2 = [] 
     max_iter = 25
 
-    conf_model_hist = np.array((max_iter,4))
-    conf_model_curr = np.array((max_iter,4))
-    conf_model_hist_curr1 = np.array((max_iter,4))
-    conf_model_hist_curr2 = np.array((max_iter,4))
     '''
     hist = ['1st_serve_pts_won_diff', '2nd_serve_pts_won_diff', 'SvGms_diff', 'ace_diff', 'bp_faced_diff', 'bp_saved_diff', 'bp_saving_perc_diff', 'df_diff', 'duration_minutes', 'first_serve_perc_diff', 'height_diff', 'match_num', 'opponent_ID', 'rank_diff', 'rank_pts_diff', 'same_handedness', 'svpt_diff']
     curr = ['surface_hard', 'surface_grass', 'surface_clay','aces', 'dfs', 'unforced', '1st_srv_pct', 'bk_pts', 'winners', 'pts_1st_srv_pct', 'pts_2nd_srv_pct', 'rcv_pts_pct']
@@ -293,15 +335,18 @@ def main():
         feature = data_split['after_set_1_all_train'].drop(['label'],axis = 1)
         label = data_split['after_set_1_all_train']['label']
         
-        getAccAlg(feature,label)
+        #getAccAlg(feature,label)
 
-        #best model is LinearSVC
+        print("We picked linearSVC with 15 features as best model")
         model = LinearSVC()
         rfe = model_selection.getRFE(LinearSVC(),15)
         rfe.fit(feature,label)
         feature_t = rfe.transform(feature)
 
         model.fit(feature_t,label)
+        #get learning curve
+        train_sizes, train_scores, valid_scores = learning_curve(model, feature_t, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+        plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_hist_curr1.png', 2)
 
         test = data_split['test']
         feature_test = test[test['after_set']==1].drop(['label','after_set'],axis = 1)
@@ -315,23 +360,26 @@ def main():
         tn, fp, fn, tp = confusion_matrix(model.predict(rfe.transform(feature_test)),label_test).ravel()
         print('Hist + Current after set 1')
         print('tp, fp, tn, fp',(tp, fp, tn, fp))
-        conf_model_hist_curr1[i,0] = tp/sum((tp, fp, tn, fp))
-        print(conf_model_hist_curr1)
+
         #Using hist + after 2nd set
         print('-----Data model: using current + after 2nd set-----')
 
         feature = data_split['after_set_2_all_train'].drop(['label'],axis = 1)
         label = data_split['after_set_2_all_train']['label']
         
-        getAccAlg(feature,label)
+        #getAccAlg(feature,label)
 
-        #best model is linear SVC
+        print("We picked linearSVC with 15 features as best model")
         model = LinearSVC()
         rfe = model_selection.getRFE(LinearSVC(),15)
         rfe.fit(feature,label)
         feature_t = rfe.transform(feature)
 
         model.fit(feature_t,label)
+        
+        #get learning curve
+        train_sizes, train_scores, valid_scores = learning_curve(model, feature_t, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+        plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_hist_curr2.png', 2)
 
         test = data_split['test']
         feature_test = test[test['after_set']==2].drop(['label','after_set'],axis = 1)
@@ -343,46 +391,58 @@ def main():
         tn, fp, fn, tp = confusion_matrix(model.predict(rfe.transform(feature_test)),label_test).ravel()
         print('Hist + Current after set 2')
         print('tp, fp, tn, fp',(tp, fp, tn, fp))
-
+        
         #Using historical only
         print('-----Data model: historical data only-----')
 
         feature = data_split['all_train'][hist]
         label = data_split['all_train']['label']
         
-        getAccAlg(feature,label)
+        #getAccAlg(feature,label)
 
-        #best model is SVC + rbf kernel
+        print("We picked SVC with rbf kernel with all features as best model")
+        print('with rfe selection')
         model = SVC(kernel = 'rbf')
 
-        rfe = model_selection.getRFE(LinearSVC(),15)
-        rfe.fit(feature,label)
-        feature_t = rfe.transform(feature)
+        
+        #get learning curve
+        train_sizes, train_scores, valid_scores = learning_curve(model, feature, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+        plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_hist.png', 2)
 
-        model.fit(feature_t,label)
+        model.fit(feature,label)
+
+        print('FEATURE FLAG', list(feature))
 
         test = data_split['test']
         feature_test = test[hist]
         label_test = test['label']
+        
+        print('Test score = ',model.score(feature_test,label_test))
+        result_model_hist.append(model.score(feature_test,label_test))
 
-        print('Test score = ',model.score(rfe.transform(feature_test),label_test))
-        result_model_hist.append(model.score(rfe.transform(feature_test),label_test))
-
-        #print confusion matrix for best model
-        tn, fp, fn, tp = confusion_matrix(model.predict(rfe.transform(feature_test)),label_test).ravel()
+        tn, fp, fn, tp = confusion_matrix(model.predict(feature_test),label_test).ravel()
         print('Historical only')
         print('tp, fp, tn, fp',(tp, fp, tn, fp))
-
-
+        
+        '''
+        print('with all features')
+        rfe = model_selection.getRFE(LinearSVC(),15)
+        rfe.fit(feature,label)
+        feature_t = rfe.transform(feature)
+        model.fit(feature_t,label)
+        print('Test score = ',model.score(rfe.transform(feature_test),label_test))
+        result_model_hist.append(model.score(rfe.transform(feature_test),label_test))
+        '''
+        
         #Using current after set 1 only
         print('-----Data model: current data only-----')
 
         feature = data_split['after_set_1_all_train'][curr]
         label = data_split['after_set_1_all_train']['label']    
-        getAccAlg(feature,label)
-
-        #best model is linear discriminant analysis with feature size = 15
-
+        
+        #getAccAlg(feature,label)
+        
+        print("We picked logistic regression with 15 features as best model")
         model = LogisticRegression()
 
         rfe = model_selection.getRFE(LogisticRegression(),15)
@@ -390,6 +450,8 @@ def main():
         feature_t = rfe.transform(feature)
 
         model.fit(feature_t,label)
+        train_sizes, train_scores, valid_scores = learning_curve(model, feature_t, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+        plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_curr1.png', 2)
 
         test = data_split['test']
         feature_test = test[test['after_set']==1][curr]
