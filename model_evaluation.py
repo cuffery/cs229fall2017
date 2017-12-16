@@ -402,11 +402,26 @@ def main():
 
         print("We picked SVC with rbf kernel with all features as best model")
         print('with rfe selection')
-        model = SVC(kernel = 'rbf')
 
-        
+        # We learnt that the behavior of SVC-rbf kernnel is very sensitive to the gamma and C parameter.
+        # Intuitively, the gamma parameter defines how far the influence of a single training 
+        # example reaches, with low values meaning ‘far’ and high values meaning ‘close’.
+        # The C parameter trades off misclassification of training examples against simplicity
+        #  of the decision surface.
+
+        # These gamma = 0.25 and C = 0.27 values for rbf kernnel was found through experiments, 
+        # with the guiding idea of "good models can be found on a diagonal of C and gamma" from
+        # previous research
+        model = SVC(kernel = 'rbf', gamma = 0.25, C = 0.27)
+
         #get learning curve
         train_sizes, train_scores, valid_scores = learning_curve(model, feature, label, train_sizes=np.linspace(.1, 1.0, 5), cv=5)
+
+        # debug code2
+        print(train_scores)
+        print(valid_scores)
+        # end debug code2
+
         plot_learning_curve(train_sizes, train_scores, valid_scores, 'learning_curve_hist.png', 2)
 
         model.fit(feature,label)
