@@ -16,12 +16,12 @@ def getAccuracyModel(model,feature, label):
     return model.score(feature,label)
 
 def getSVCModel(feature,label,ker):
-    clf = svm.SVC(kernel = ker,max_iter = 10000)
+    clf = svm.SVC(kernel = ker,max_iter = 100000)
     model = clf.fit(feature,label)
     return model
 
 def getLinearSVCModel(feature,label):
-    clf = LinearSVC()
+    clf = LinearSVC(loss = 'hinge')
     model = clf.fit(feature,label)
     return model
 
