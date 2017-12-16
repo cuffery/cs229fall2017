@@ -82,7 +82,7 @@
 %	Section 1 Motivation
 %----------------------------------------------------------------------------------------
 \begin{abstract}
-This project adopts an innovative data model by combining both historical performance data and real-time player in-game stats, and apply machine learning to predict tennis match outcomes. This project explores and compares four data models mixing historical data and real-time stats, while applying various machine learning techniques such as logistic regression, support vector classification (SVC) with linear, RBF and polynomial kernels, and Naive Bayes classification. Feature selection techniques such as recursive feature elimination, and principal component analysis were employed as well. We find that applying SVC with a RBF kernel on historical data alone gives the best prediction. More importantly, a thorough analysis on results was done to reveal and understand the predominant challenge in this data model - high bias, as our collected feature set does not cover edge cases and "comback" situations. \textbf{TTL} (total points won) is found to be the most dominant and predictive feature for linear models, with other standout features also revealed. From there, the project outlines the future work needed to combat the high bias issue by proposing other features that could be used but not included in the current project. 
+This project adopts an innovative data model by combining both historical match data and real-time stats, and apply machine learning to predict tennis match outcomes. This project explores and compares four data models mixing historical data and real-time stats, while applying various machine learning techniques such as logistic regression, support vector classification (SVC) with linear, RBF and polynomial kernels, and Naive Bayes classification. Feature selection techniques such as recursive feature elimination, and principal component analysis were employed as well. We find that applying SVC with a RBF kernel on historical data alone gives the best prediction. More importantly, a thorough analysis on results was done to reveal and understand the predominant challenge in this data model - high bias, as our collected feature set does not cover edge cases and "comback" situations. \textbf{TTL} (total points won) is found to be the most dominant and predictive feature for linear models, with other standout features also revealed. From there, the project outlines the future work needed to combat the high bias issue by proposing other features that could be used but not included in the current project. 
 \end{abstract}
 
 \section{Introduction}
@@ -92,7 +92,7 @@ In the 2017 Stuttgart Open, Roger Federer, then an 18-time grand slam champion, 
 %----------------------------------------------------------------------------------------
 
 \section{Related Work}
-Extensive research has been done on tennis as it is an ideal candidate for using hierarchical probability models: a match consists of a sequence of sets, which in turn consist of several games, which in turn consist of a sequence of points. Knottenbelt \cite{KNOTTENBELT20123820} proposed a common opponent model to extract features between two players that is found to be very predcitve in his stochastic models, while James \cite{omalley} has done thorough study on probability Formulas and statistical analysis on tennis matches. Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc), such as Sipko \cite{tennis1}, and Madurska \cite{tennis2setbyset} - whose by-set method inspired us as well. 
+Extensive research has been done on tennis as it is an ideal candidate for using hierarchical probability models: a match consists of a sequence of sets, which in turn consist of several games, which in turn consist of a sequence of points. Knottenbelt \cite{KNOTTENBELT20123820} proposed a common opponent model to extract features between two players that is found to be very predcitve in his stochastic models, while James \cite{omalley} has done thorough study on probability formulas and statistical analysis on tennis matches. Recent researchers began to apply machine learning on tennis pre-game predictions based on past performance (including previous encounter, current ranking, etc), such as Sipko \cite{tennis1}, and Madurska \cite{tennis2setbyset} - whose by-set method inspired us. 
 
 Our project seeks to apply classification algorithms from machine learning to model men's professional singles matches by using both pre-game, historical performance calcualted via a common opponent model \cite{KNOTTENBELT20123820}, and real-time, in-game stats \cite{tennis_charting} \cite{tennis2setbyset}. As pointed out by Sipko \cite{tennis1}, this in-game approach "allows the model to capture the change in a player's performance over the course of the match. For example, different players fatigue during a match in different ways." We hope that results from our predictions can be extended to give real-time coaching advice to support game strategy decision.
 %----------------------------------------------------------------------------------------
@@ -101,17 +101,17 @@ Our project seeks to apply classification algorithms from machine learning to mo
 
 \section{Dataset and Features}
 \subsection{Dataset \& pre-processing}
-This project employs two open source datasets mainly for labels and features, by Jeff Sackmann \cite{tennis_atp} and \cite{tennis_charting}. The \textit{Match Charting Project} contains set level data from 1442 matches, spanning from 1974 to 2017. \textit{Tennis ATP} dataset contains match level data from 1969 to 2017.
+This project employs two open source datasets for labels and features, authored by Jeff Sackmann \cite{tennis_atp}\cite{tennis_charting}: the \textit{Match Charting Project}, which contains set level data from 1442 matches spanning from 1974 to 2017; and the \textit{Tennis ATP} dataset which contains match level data from 1969 to 2017. There are a few pre-processing steps needed to make the data useful, such as: 
 \begin{itemize}
-\item \textbf{Pick date range}: Matches from 2000 - 2017 are used as samples (1415 matches) to focus on the comtemporary game of Tennis.
-\item \textbf{Remove duplicates via match id}: Since both datasets are manually entered via crowdsourcing, there are some inaccuracy and duplication that require our pre-processing.
-\item \textbf{Remove Davis Cup}: Davis Cup is the World Cup of tennis, where players play for their country.  We decided to remove all Davis Cup entries since group matches may include strategic moves that are considerably different from individual tournaments.
-\item \textbf{Merge Tennis ATP and Match Charting Project}: Real-time stats are obtained the \textit{Match Charting Project} dataset, whereas historical performance for both players is computed from \textit{Tennis ATP}. Two datasets are merged on player's first and last name, with players of the same names removed manually.
-\item \textbf{Standardize Features} We are unable to extract all features listed in Sipko \cite{tennis1}.  While extracting features from \textit{Tennis ATP} was easy, the \textit{Match Charting Project} data proves much more challenging with its detailed stats and file structure.  We managed to extract a subset of all possible features from processing the point-by-point data, and standardized across the historical and current features.
+\item \textbf{Picking date range}: Matches from 2000 - 2017 are used as samples (1415 matches) to focus on the comtemporary game of Tennis.
+\item \textbf{Removing duplicates via match id}: Since both datasets are manually entered via crowdsourcing, there are some inaccuracy and duplication that require our pre-processing.
+\item \textbf{Removing Davis Cup}: Davis Cup is the World Cup of tennis, where players play for their country.  We decided to remove all Davis Cup entries since group matches may include strategic moves that are considerably different from individual tournaments.
+\item \textbf{Merging Tennis ATP \& Match Charting Project}: Real-time stats are only found in the \textit{Match Charting Project} dataset whereas historical performance can be computed from \textit{Tennis ATP}. Two datasets need to be merged to give us necessary flexibility and features to test our ideas. They are merged on player's first and last names, with the rare cases of players with duplicate names removed manually.
+\item \textbf{Standardizing Features} We are unable to extract all features listed in Sipko \cite{tennis1}. While extracting features from the \textit{Tennis ATP} was easy, the \textit{Match Charting Project} data proves non-trivial with its detailed stats and fragmented file structure.  We managed to extract a subset of all possible features from processing the point-by-point data, and standardized across the historical and current features.
 \end{itemize}
 \subsection{Feature Extraction}
 \label{sec:label}
-Original dataset we used denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with two rows, one from each player's perspective, and label the match result accordingly. Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
+The original dataset denotes Player 1 as the winner and Player 2 as the loser. While processing, we decide to represent each set in each match with \textit{two} rows, one from each player's perspective, and label the match result accordingly (1 and -1 for win and loss, respectively). Thus we have one row per player per set per match, containing features from historical data and real time data. Historical data includes match details and player's past performance; real-time data, for the scope of this project, will be defined as the performance from all previous sets in the match:
 \begin{enumerate}
 \item A vector of input features (\textbf{X}), describing the performance in previous set and historical performance from one player's perspective
 \item A target value (\textbf{y}), indicating the match outcome. $y \in \{1,-1\}$
@@ -128,17 +128,17 @@ We use a method proposed by Knottenbelt \cite{KNOTTENBELT20123820} and extended 
 \subsubsection{Edge Cases for Common Opponents}
 We have run into 2 edge cases: (1) when at least one of the players is new; (2) when two players do not have any common opponents. Upon investigation, our solution is: (1) when the player is new with no historical data, we remove the samples, which consist of 84 data points out of 1421 matches; (2) when two players do not have any common opponents, we compute the average for each player (regardless of opponents) and take the difference, which consist of 74 out of 1421 matches. Note, as described in Section~\ref{sec:label}, our final sample size will contain $2x * 1421$ rows, where $x$ is the number of sets played in each match.
 
-It's worth noting that whenever we encounter NULLs in the feature data, we remove the entire row to avoid the confusion introduced by different null-filling options, and to be consistent and rigorous. This reduces available data points for training and evaluation, and could potentially impact model performance. 
+It's worth noting that whenever we encounter NULLs in the feature dataset, we remove the entire row to avoid the confusion introduced by potentially using different null-filling options, and to be consistent and rigorous. This reduces available data points for training and evaluation, and could potentially impact model performance. 
 \subsection{Feature Lists}
 \label{sec:feat}
 \subsubsection{Features from historical matches}
 Features are the \textit{difference variables} averaged for both players obtained from a common opponent model \cite{KNOTTENBELT20123820}, unless otherwise noted. They are:
 \begin{itemize}
 \item \textbf{Performance Features}: Number of aces, double faults, break points faced and saved; Percentages of winning on first and second serves, and first serve in rate.
-\item \textbf{Match Details}: Match duration, number of serve games, number of serve points per game
+\item \textbf{Match Details}: Match duration in minutes, number of serve games, number of serve points per game
 \item \textbf{Player Bio}: ATP Rank, ATP Rank Points, same handedness, height
 \end{itemize}
-We also extracted and added two more features to the models after the first pass of the project and diagnostics that reveal high bias as our main hindrance of performance, which we will elaborate further in Section 5. The two added features are \textbf{duration win/loss rate} which calculates the average difference in duration (in minutes) of the past matches each player won or lost respectively, using the Common Opponent Model, and \textbf{age diff win/loss rate}, which calculates the average age difference of the past matches each player won or lost respectively, using the Common Opponent Model.
+We also extracted and added two more features to the models after the first pass of the project and diagnostics that reveal high bias as our main hindrance of performance, which we will elaborate further in Section 5. The two added features are \textbf{duration win/loss rate} which calculates the average difference in duration (in minutes) of the past matches each player won or lost respectively, using the Common Opponent Model, and \textbf{age diff win/loss rate}, which calculates the average age difference of the past matches each player won or lost respectively, using the same Common Opponent Model.
 \subsubsection{Features from current match performance}
 \begin{itemize}
 \item \textbf{Performance Features} Number of aces, double faults, winners and total points won; Percentage of winning on first and second serve, return points won, first serve in
@@ -151,23 +151,24 @@ We also extracted and added two more features to the models after the first pass
 
 \section{Method}
 \subsection{Logistic Regression}
-As a start, we built a logistic regression on the data using Scikit-Learn's implementation (add citation). The $L2$-penalized model minimizes the cost function below: $$\min_{w,c} \sum_{i=1}^n \log(e^{-y_i(X_i^Tw+c)}+1) + \frac{1}{2}w^Tw$$
+As a start, we applied logistic regression on the data using Scikit-Learn's implementation\cite{scikit-learn}. The $L2$-penalized model minimizes the cost function below: $$\min_{w,c} \sum_{i=1}^n \log(e^{-y_i(X_i^Tw+c)}+1) + \frac{1}{2}w^Tw$$
 The solver implemented in the code uses a coordinate descent algorithm, and the detailed proof can be found in Hsieh 2008 \cite{hsieh2008dual}
 \subsection{Support Vector Machine}
-Next, we used a linear support vector classifier from scikit-learn \cite{scikit-learn} to predict the tennis match outcome. Given training vectors $x_i \in \mathbb{R}^n$ and the label vector $y = \{1,-1\}$ where 1 represents a win and -1 represents a loss, we can formulate the support vector machine as solving the following primal problem: $$min_{w,b, \varsigma} \sum_{i=1}^n \varsigma_i + \frac{1}{2}w^Tw$$ 
+Next, we used a linear support vector classifier from Scikit-Learn \cite{scikit-learn} to predict the tennis match outcome. Given the training vectors $x_i \in \mathbb{R}^n$ and the label vector $y = \{1,-1\}$ where 1 represents a win and -1 represents a loss, we can formulate the support vector machine as solving the following primal problem: $$min_{w,b, \varsigma} \sum_{i=1}^n \varsigma_i + \frac{1}{2}w^Tw$$ 
 $$s.t. y_i(w^T\theta(x_i) + b) \geq 1 - \varsigma_i,    \varsigma_i \geq 0$$
 Its dual is \begin{align*}
 \min_\alpha \frac{1}{2}\alpha^TQ\alpha - e^T\alpha \\
 s.t. y^T \alpha = 0 \\
 0 \le \alpha \le 1 
 \end{align*}
-where $e$ is the vector of all ones, and $Q_{i,j} = y_i y_j K(x_i, x_j)$, and $K(x_i, x_j)$ is the kernel here. We tried different kernels including linear, RBF, and poly which give similar performances. 
+where $e$ is the vector of all ones, and $Q_{i,j} = y_i y_j K(x_i, x_j)$, and $K(x_i, x_j)$ is the kernel here. We tried different kernels including linear, RBF (where $K(x_i, x_j) = exp(-\gamma||x_i - x_j||^2)$), and polynomial (where $K(x_i, x_j) = (x_i^T x_j + c)^d$), and have documented performance below in Section 5.
 \subsection{Other algorithms}
-Moreover, we've implemented \textbf{Naive Bayes} as a classifier, to check the model performance. We were curious to test if Naive Bayes classifier works well; and if so, if it indicates that the features are \textit{conditionally independent} - i.e. break point percentage, rank difference, and all other features don't really relate to each other as long as I win the matches. Given a class variable $y = \{1,-1\}$  and a dependent feature vector $x_1$ through $x_n$, Bayes’ theorem states the following relationship: $$P(y|x_1,...,x_n) = \frac{P(y)P(x_1,...,x_n|y)}{P(x_1,...,x_n)}$$
+Moreover, we implemented \textbf{Naive Bayes} as a classifier, to check the model performance. We were curious to test if Naive Bayes classifier works well; and if so, whether this indicates that the features are \textit{conditionally independent} - i.e. break point percentage, rank difference, and all other features don't really relate to each other as long as I win the matches. Given a class variable $y = \{1,-1\}$  and a dependent feature vector $x_1$ through $x_n$, Bayes’ theorem states the following relationship: $$P(y|x_1,...,x_n) = \frac{P(y)P(x_1,...,x_n|y)}{P(x_1,...,x_n)}$$
+
 In particular, we have chosen the Gaussian Naive Bayes algorithm following the assumption that $X$ with respect to $y = \{1,-1\}$ is distributed according to a Gaussian distribution. This gives us the feature likelihood as $$P(x_i | y) = \frac{1}{\sqrt{2\pi \sigma_y^2}} exp(-\frac{(x_i - \mu_y)^2}{2\sigma_y^2})$$
 And we use the following classification rule:
 $$\hat{y} = arg \max_y P(y) \Pi_{i=1}^n P(x_i | y)$$
-We mainly used Naive Bayes to benchmark model performance against logistic regression and linear SVC, as it is extremely fast to run.
+We mainly used Naive Bayes to benchmark model performance against logistic regression and SVC, as it is extremely fast to run.
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
@@ -175,12 +176,12 @@ We mainly used Naive Bayes to benchmark model performance against logistic regre
 %----------------------------------------------------------------------------------------
 
 \section{Experiments, Results, Discussion}
-We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and linear SVC, for their excellent performances under our various data models. Moreover, cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. We compared different models using the dev set for evaluation; once we had the best model, we passed that through the test set for a final model accuracy score. 
+We organized discussion around results and experiments in the following 4 questions. We mainly recorded results using logistic regression and SVC, for their good performances under our various data models. Moreover, cross-validation (10-fold) is done on all the results to ensure robustness. The general random split of train-dev-test (60:20:20) is also observed. We compared different models using the dev set for evaluation; once we had the best model, we passed that through the test set for a final model accuracy score. 
 \subsection{Parameters, Metrics}
 For logistic regression, we chose L2 regularization with the \textit{liblinear} Algorithm \cite{hsieh2008dual} to use in the optimization solver. For small datasets, \textit{liblinear} is shown to perform really well. The penalty function makes sure that we don't overfit. 
-For SVC, we explored multiple options such as linear, poly and RBF based on empirical performance on dev set, and used \textbf{RBF} (Gaussian) kernel for historical only data model and \textbf{linear} kernel for the rest. In general, we think this choice makes sense as RBF kernels are general purpose and usually the first thing to try when we are not processing text. We also used \textit{squared hinge loss} ($\max(0,-)^2$) to penalize violated margins more strongly, based on emprical evidence on our particular dataset. Moreover, we used \textbf{L2 regularization} as well, as penalizing large weights tends to improve generalization (because it means that no input dimension can have a very large influence on the scores all by itself) and thus avoids overfitting. As evident by results presented below, this is part of our effort to encourage models to prefer smaller and more diffuse weight vectors (to counteract the fact that a very small subset of features account for most predictive power). The classifier is thus "encouraged" to take into account all input dimensions to small amounts rather than a few input dimensions and very strongly, ideally. Lastly, we set the max iteration to 100,000 as SVM may not converge. 
+For SVC, we explored multiple options such as linear, poly and RBF based on empirical performance on dev set, and used \textbf{RBF} (Gaussian) kernel for historical only data model and \textbf{linear} kernel for the rest. In general, we think this choice makes sense as RBF kernels are general purpose and usually the first thing to try when we are not processing text. We also used \textbf{squared hinge loss} ($\max(0,-)^2$) to penalize violated margins more strongly, based on emprical evidence on our particular dataset. Moreover, we used \textbf{L2 regularization} as well, as penalizing large weights tends to improve generalization (because it means that no input dimension can have a very large influence on the scores all by itself) and thus avoids overfitting. As evident by results presented below, this is part of our effort to encourage models to prefer smaller and more diffuse weight vectors (to counteract the fact that a very small subset of features account for most predictive power). The classifier is thus "encouraged" to take into account all input dimensions to small amounts rather than a few input dimensions and very strongly, ideally. Lastly, we set the max iteration to 100,000 as SVM may not converge. 
 
-We mainly looked at \textbf{accuracy} as our success criterion, which calculates how many labels our model predicts correctly out of all the dev/test labels.  We used the term "score" interchangeably with accuracy in this report. 
+We mainly looked at \textbf{accuracy} as our success criterion, which calculates how many labels our model predicts correctly out of all the dev/test labels.  We used the term "\textbf{score}" interchangeably with accuracy in this report. 
 \subsection{How well can we predict tennis matches?}
 To evaluate model performance, it's important to note that for linear SVC and logistic regression, we capped the number of features to 15 - due to the penalty functions in place, we observed that accuracy drops sharply after we exceed 15 features using RFE. This can be clearly seen in Figure~\ref{fig:rfe}. 
 \begin{figure}[h]
@@ -189,7 +190,7 @@ To evaluate model performance, it's important to note that for linear SVC and lo
   \centering
     \includegraphics[width=0.4\textwidth]{acc2}
 \end{figure}
-Our best model, which uses \textit{only} historical with a RBF-kernel SVC predicts with $94.6\%$ accuracy on test set, after being trained using cross-validation on the train set. The detailed performance comparison of each data method on \textit{test} score (with best performing machine learning algorithm, after being trained on the train set) can be seen in Table~\ref{tab:m1}. We have also included the detailed dev set accuracy information in the appendix. 
+Our best model, which uses \textit{only} historical with a RBF-kernel SVC predicts with $94.6\%$ accuracy on test set, after being trained using cross-validation on the train set. The detailed performance comparison of each data method on \textit{test} score (with best performing machine learning algorithm, after being trained on the train set) can be seen in Table~\ref{tab:m1}. We have included the detailed dev set accuracy information in the appendix. 
 \begin{table}[h]
 \caption{Different Modeling Method Test Accuracy Comparison}
 \label{tab:m1}
@@ -283,7 +284,7 @@ The use of common opponent model and difference variables already offer high pre
 \item Generated ATP Match results for labels
 \item Applied math fomulations from machine learning models \& techniques learned from class, namely logistic regression, SVM and Naive Bayes. 
 \item Conducted error analyses along with Yi \& Yubo to understand the root cause of our performance curve, and proposing new checks and solutions. 
-\item Typsetted (\LaTeX) the project milestone report, contributed mostly in the poster making, and typesetted \& synthesized the final report. 
+\item Typsetted (\LaTeX) the project milestone report, contributed in the poster making, and wrote, typesetted \& synthesized the final report. 
 \end{itemize}
 
 \subsection{Yubo Tian}
